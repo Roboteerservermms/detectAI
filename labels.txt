@@ -1,0 +1,6 @@
+0  person
+1  vehicle
+2  vehicle
+3  vehicle
+5  vehicle
+7  vehicle
