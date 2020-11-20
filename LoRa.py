@@ -2,8 +2,11 @@ import serial
 import time
 import signal
 import threading
+import os
 from haversine import haversine
-from detect import *
+from detect import detectThread
+import logging
+import queue
 
 line = [] #라인 단위로 데이터 가져올 리스트 변수
 
@@ -14,18 +17,37 @@ exitThread = False   # 쓰레드 종료용 변수
 start = (0,0)
 distance = None
 sender_eui = "1f9b23"
-exitThread = False
+start_latitude, start_longitude = 37.540166, 127.056670
+lora_detect = False
+send_success = False
+sending_data = []
 
-def protocol(tmp):
+log = logging.getLogger('detect')
+log.setLevel(logging.DEBUG)
+log_handler = logging.StreamHandler()
+log.addHandler(log_handler)
+
+def protocol(rawdata):
+    global lora_detect
+    global send_success ## 수신여부 성공했을때
+    global sending_data
+    global accumulate
+    tmp = ''.join(rawdata)    
     if "RECV" in tmp: ## 어떤 데이터를 받게 되며
         sender_eui = tmp.split(":")[1]
         p = tmp.split(":")[3]
-        print("protocol is {}".format(p))
-
+        recvdata = tmp.split(":")[4]
+        log.info("protocol is {}".format(p))
         if p == "DETECT":
-            lighton()
+            if recvdata == "LIGHTON":
+                lora_detect = True
+                sending_data += "{}:RECV".format(p)
+                accumulate = 0
+            if recvdata == "LIGHTOFF":
+                lora_detect = False
+                sending_data += "{}:RECV".format(p)
+                accumulate = 30
         elif p == "LOCATE":
-            recvdata = tmp.split(":")[4]
              ## LOCATE 프로토콜은 위도 경도 순서로 보내지며 해당 프로토콜은 타 보드의 위치정보를 저장하는 용도로 사용된다.
             goal_latitude = recvdata.split(",")[0]
             goal_longitude = recvdata.split(",")[1]
@@ -33,64 +55,73 @@ def protocol(tmp):
             goal_longitude = float(goal_longitude)
             goal = (goal_latitude, goal_longitude)
             distance = haversine(start, goal, unit='m') ## 위도 경도를 이용하여 거리를 계산한다.
-            print("distance between {0} and me is {1}".format(sender_eui, distance))
-            #ser.write(bytes("AT+DATA={0}:{1}".format(sender_eui, start),encoding='ascii'))
-
+            log.info("LoRa : distance between {0} and me is {1}".format(sender_eui, distance))
+            sending_data += "{}:RECV".format(p)
         elif p == "RANGE":
             recvdata = tmp.split(":")[4]
             # RANGE 프로토콜은 객체 검출 시 사용되는 거리 민감도수정 값을 반환한다
             dist_range = float(recvdata)
-            print("change distance to send detection data")
-            print("distance range changed {}".format(dist_range))
+            log.info("LoRa : change distance to send detection data")
+            log.info("LoRa : distance range changed {}".format(dist_range))
+        if recvdata == "RECV":
+            send_success = True
+            log.info("LoRa : Locate data sending success")
 
 #쓰레드 종료용 시그널 함수
 def handler(signum, frame):
+    global exitThread
     exitThread = True
 
-#데이터 처리할 함수
-def parsing_data(rawdata):
-    # 리스트 구조로 들어 왔기 때문에
-    # 작업하기 편하게 스트링으로 합침
-    tmp = ''.join(rawdata)
-    #출력!
-    protocol(tmp)
-    print(tmp)
-
 #본 쓰레드
-def loraThread(ser, exitThread):
+def readThread(ser, detect_q, exitThread):
     global line
-    ## 초기화
+    global lock
+    global on_state
+    global lora_detect
+    global sending_data
 
+
+    ## 초기화
     # 쓰레드 종료될때까지 계속 돌림
+    on_state = False
+    detect = False
+    lock = threading.Lock()
     while not exitThread:
-        #데이터가 있있다면
         lock.acquire()
+        if not detect_q.empty():
+            detect = detect_q.get()
+        lock.release()
+        if detect:
+            sending_data += "DETECT:LIGHTON"
+        #데이터가 있있다면
         for c in ser.read():
             #line 변수에 차곡차곡 추가하여 넣는다.
             line.append(chr(c))
             if c == 10: #라인의 끝을 만나면..
                 #데이터 처리 함수로 호출
-                parsing_data(line)
+                protocol(line)
                 del line[:]
+        lock.acquire()
+        detect_q.get(lora_detect)
         lock.release()
-
-
+        if sending_data:
+            for command in sending_data:
+                ser.write(bytes(("AT+DATA={0}:{1}:\r\n").format(sender_eui, command),'ascii'))
+                del sending_data[:]
 
 if __name__ == "__main__":
-
-    start_latitude, start_longitude = input("위도와 경도를 입력하세요: ").split(",")
-    start_latitude = float(start_latitude)
-    start_longitude = float(start_longitude)
-    start = (start_latitude, start_longitude)
-    print("내 위도 경도는 {}".format(start))
-
+    global lock
     #종료 시그널 등록
     signal.signal(signal.SIGINT, handler)
     #시리얼 열기
-    global ser = serial.Serial(port, baud, timeout=0)
-    lock = threading.Lock()
+    ser = serial.Serial(port, baud, timeout=0)
+    lora_share_queue = queue.Queue(1)
+    
+
+
     #시리얼 읽을 쓰레드 생성
-    thread = threading.Thread(target=loraThread, args=(ser,exitThread))
-    thread = threading.Thread(target=detectThread, args=(ser,exitThread))
+    lorathread = threading.Thread(target=readThread, args=(ser,lora_share_queue,exitThread))
+    detectthread = threading.Thread(target=detectThread, args=(lora_share_queue, exitThread))
     #시작!
-    thread.start()
+    lorathread.start()
+    detectthread.start()

@@ -29,20 +29,9 @@ def ReadLabelFile(file_path):
 
     return ret
 
-def lighton():
-    on_state = True
-    print("light's on")
-    os.system('sudo echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
-    accumulate = 0
-
-
-def lightoff():
-    on_state = False
-    print("light's off")
-    os.system('sudo echo 0 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
 
 def main():
-    global args, accumulate, on_state
+    global accumulate, on_state
     global num_gpio, ontime, threshold
 
     num_gpio = 65
@@ -92,17 +81,24 @@ def main():
                             accumulate = 0
                             detect = 0
                             if not on_state:
-                                lighton()
+                                    on_state = True
+                                    print("light's on")
+                                    os.system('sudo echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
+                                    accumulate = 0
                 else:
                     neg = True
                 if accumulate >= arg_ontime * 1000:
                     if on_state:
-                        lightoff()
+                        on_state = False
+                        print("light's off")
+                        os.system('sudo echo 0 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
         else:
             neg = True
             if accumulate >= arg_ontime * 1000:
                 if on_state:
-                    lightoff()
+                    on_state = False
+                    print("light's off")
+                    os.system('sudo echo 0 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
 
         frame = np.array(img)
         frame = frame[:, :, ::-1].copy()
