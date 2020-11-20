@@ -23,13 +23,12 @@ def ReadLabelFile(file_path):
     return ret
 
 
-def detectThread(l_q, exitThread):
+def detectThread(l_q, d_q ,exitThread):
     global accumulate, on_state, num_gpio, ontime, threshold
 
     num_gpio = 65
     ontime = 30
     threshold = 60
-    time_out = False
 
     log = logging.getLogger('detect')
     log.setLevel(logging.DEBUG)
@@ -43,23 +42,19 @@ def detectThread(l_q, exitThread):
     labels = ReadLabelFile(labelfile) if labelfile else None
     labelids = labels.keys()
     cap = cv2.VideoCapture(0)
-    neg = True
     accumulate = 0
     on_state = False
     detect = 0
+    lora_ret = False
     t_cur_1 = int(round(time.time()))
     t_cur_2 = int(round(time.time()))
     lock = threading.Lock()
     while not exitThread:
         lock.acquire()
         if not l_q.empty():
-            d = l_q.get()
-            if d:
-                on_state = d
-                accumulate = 0
-            else:
-                accumulate = ontime * 1000
+            lora_ret = l_q.get()
         lock.release()
+
         if on_state:
             accumulate += t_cur_2 - t_cur_1
         else:
@@ -85,22 +80,40 @@ def detectThread(l_q, exitThread):
                             detect = 0
                             if not on_state:
                                     on_state = True
-                                    print("light's on")
+                                    lock.acquire()
+                                    d_q.put(True)
+                                    lock.release()
+                                    log.info("AI: light's on")
                                     os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                                     accumulate = 0
-                else:
-                    neg = True
-                if accumulate >= ontime * 1000:
+                elif lora_ret:
+                    if not on_state:
+                        on_state = True
+                        log.info("LoRa: light's on")
+                        os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
+                        accumulate = 0
+                elif accumulate >= ontime * 1000:
                     if on_state:
                         on_state = False
-                        print("light's off")
+                        lock.acquire()
+                        d_q.put(False)
+                        lock.release()
+                        log.info("LoRa: light's off")
                         os.system('echo 0 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
+        elif lora_ret:
+            if not on_state:
+                on_state = True
+                log.info("LoRa: light's on")
+                os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
+                accumulate = 0
         else:
-            neg = True
             if accumulate >= ontime * 1000:
                 if on_state:
                     on_state = False
-                    print("light's off")
+                    log.info("LoRa: light's off")
+                    lock.acquire()
+                    d_q.put(False)
+                    lock.release()
                     os.system('echo 0 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
 
         frame = np.array(img)
