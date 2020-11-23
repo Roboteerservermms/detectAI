@@ -42,16 +42,10 @@ def protocol(rawdata, lora_q):
             log.info("LoRa: receving data {}".format(recvdata))
             if recvdata == "LIGHTON":
                 lora_detect = True
-                sending_data += "{}:RECV ".format(p)
-                accumulate = 0
-                lora_q.put(True)
-            if recvdata == "LIGHTOFF":
-                lora_detect = False
-                sending_data += "{}:RECV ".format(p)
-                lora_q.put(False)
+                sending_data = "{}:RECV ".format(p)
             if recvdata == "RECV":
                 log.info("past command send okay")
-                send_success += "{}_True".format(recv_eui)
+                send_success = True
         elif p == "LOCATE":
              ## LOCATE 프로토콜은 위도 경도 순서로 보내지며 해당 프로토콜은 타 보드의 위치정보를 저장하는 용도로 사용된다.
             goal_latitude = recvdata.split(",")[0]
@@ -71,6 +65,7 @@ def protocol(rawdata, lora_q):
         if recvdata == "RECV":
             send_success = True
             log.info("LoRa : Locate data sending success")
+
 
 #쓰레드 종료용 시그널 함수
 def handler(signum, frame):
@@ -96,13 +91,8 @@ def readThread(ser, lora_q, detect_q, exitThread):
         if not detect_q.empty():
             detect_ret = detect_q.get()
             if detect_ret:
-                on_state = True
                 sending_data += "DETECT:LIGHTON "
-            elif on_state:
-                sending_data += "DETECT:LIGHTOFF "
         lock.release()
-            
-        
         #데이터가 있있다면
         for c in ser.read():
             #line 변수에 차곡차곡 추가하여 넣는다.
@@ -114,7 +104,7 @@ def readThread(ser, lora_q, detect_q, exitThread):
         lock.acquire()
         lora_q.put(lora_detect)
         lock.release()
-        if sending_data:
+        if send_success:
             for command in sending_data.split():
                 for eui in sender_eui.split():
                     log.info("Sending command {0}:{1}".format(eui, command))

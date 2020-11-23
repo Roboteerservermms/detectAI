@@ -87,7 +87,10 @@ def detectThread(l_q, d_q ,exitThread):
                                     os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                                     accumulate = 0
                 elif lora_ret:
+                    lora_ret = False
+                    accumulate = 0
                     if not on_state:
+                        
                         on_state = True
                         log.info("LoRa: light's on")
                         os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
@@ -95,14 +98,13 @@ def detectThread(l_q, d_q ,exitThread):
                 elif accumulate >= ontime * 1000:
                     if on_state:
                         on_state = False
-                        lock.acquire()
-                        d_q.put(False)
-                        lock.release()
-                        log.info("LoRa: light's off")
                         os.system('echo 0 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
         elif lora_ret:
+            lora_ret = False
+            accumulate = 0
             if not on_state:
                 on_state = True
+                lora_ret = False
                 log.info("LoRa: light's on")
                 os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                 accumulate = 0
@@ -110,10 +112,6 @@ def detectThread(l_q, d_q ,exitThread):
             if accumulate >= ontime * 1000:
                 if on_state:
                     on_state = False
-                    log.info("LoRa: light's off")
-                    lock.acquire()
-                    d_q.put(False)
-                    lock.release()
                     os.system('echo 0 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
 
         frame = np.array(img)
