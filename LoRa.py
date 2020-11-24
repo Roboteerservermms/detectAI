@@ -16,22 +16,19 @@ baud = 115200 # 시리얼 보드레이트(통신속도)
 exitThread = False   # 쓰레드 종료용 변수
 start = (0,0)
 distance = None
-sender_eui = "1f9b23 1f9b25 1f9f0f"
+eui_data = {"1f9b23":{"":False}, "1f9b25":{"":False}, "1f9f0f":{"":False}}
 start_latitude, start_longitude = 37.540166, 127.056670
 lora_detect = False
-send_success = ""
-sending_data = ""
-
+sending_data = {"":False}
 log = logging.getLogger('detect')
 log.setLevel(logging.DEBUG)
 log_handler = logging.StreamHandler()
 log.addHandler(log_handler)
 
-def protocol(rawdata, lora_q):
+def protocol(rawdata):
     global lora_detect
-    global send_success ## 수신여부 성공했을때
     global sending_data
-    global accumulate
+
     tmp = ''.join(rawdata)    
     if "RECV" in tmp: ## 어떤 데이터를 받게 되며
         recv_eui = tmp.split(":")[1]
@@ -42,10 +39,7 @@ def protocol(rawdata, lora_q):
             log.info("LoRa: receving data {}".format(recvdata))
             if recvdata == "LIGHTON":
                 lora_detect = True
-                sending_data = "{}:RECV ".format(p)
-            if recvdata == "RECV":
-                log.info("past command send okay")
-                send_success = True
+                eui_data[recv_eui]["{}:RECV".format(p)] = False
         elif p == "LOCATE":
              ## LOCATE 프로토콜은 위도 경도 순서로 보내지며 해당 프로토콜은 타 보드의 위치정보를 저장하는 용도로 사용된다.
             goal_latitude = recvdata.split(",")[0]
@@ -54,17 +48,18 @@ def protocol(rawdata, lora_q):
             goal_longitude = float(goal_longitude)
             goal = (goal_latitude, goal_longitude)
             distance = haversine(start, goal, unit='m') ## 위도 경도를 이용하여 거리를 계산한다.
-            log.info("LoRa : distance between {0} and me is {1}".format(sender_eui, distance))
-            sending_data += "{}:RECV ".format(p)
+            log.info("LoRa : distance between {0} and me is {1}".format(eui_data, distance))
+
         elif p == "RANGE":
             recvdata = tmp.split(":")[4]
             # RANGE 프로토콜은 객체 검출 시 사용되는 거리 민감도수정 값을 반환한다
             dist_range = float(recvdata)
             log.info("LoRa : change distance to send detection data")
             log.info("LoRa : distance range changed {}".format(dist_range))
+
         if recvdata == "RECV":
-            send_success = True
-            log.info("LoRa : Locate data sending success")
+            eui_data[recv_eui]["{}:LIGHTON".format(p)] = True
+            log.info("command is sucess")
 
 
 #쓰레드 종료용 시그널 함수
@@ -80,6 +75,7 @@ def readThread(ser, lora_q, detect_q, exitThread):
     global lora_detect
     global sending_data
 
+    ## 수신여부 성공했을때
     detect_ret = False
     ## 초기화
     # 쓰레드 종료될때까지 계속 돌림
@@ -90,8 +86,10 @@ def readThread(ser, lora_q, detect_q, exitThread):
         lock.acquire()
         if not detect_q.empty():
             detect_ret = detect_q.get()
-            if detect_ret:
-                sending_data += "DETECT:LIGHTON "
+            for eui in eui_data.keys():
+                if detect_ret:
+                    for eui in eui_data.keys():
+                        eui_data[eui]["DETECT:LIGHTON"] = False
         lock.release()
         #데이터가 있있다면
         for c in ser.read():
@@ -99,18 +97,29 @@ def readThread(ser, lora_q, detect_q, exitThread):
             line.append(chr(c))
             if c == 10: #라인의 끝을 만나면..
                 #데이터 처리 함수로 호출
-                protocol(line, lora_q)
+                protocol(line)
                 del line[:]
         lock.acquire()
         lora_q.put(lora_detect)
         lock.release()
-        if send_success:
-            for command in sending_data.split():
-                for eui in sender_eui.split():
-                    log.info("Sending command {0}:{1}".format(eui, command))
-                    ser.write(bytes(("AT+DATA={0}:{1}:\r\n").format(eui, command),'ascii'))
-                    time.sleep(0.034)
-                sending_data.rstrip(command)
+        
+        for eui in eui_data.keys():
+            for command in eui_data[eui].keys():
+                if eui_data[eui][command]:
+                    log.info("{0}:{1} command's success is {2}".format(eui, command, sending_data.pop(command)))
+                    del eui_data[eui][command]
+                    eui_data[eui] = {"":False} 
+                else:
+                    if command:
+                        if "RECV" in command:
+                            ser.write(bytes(("AT+DATA={0}:{1}:\r\n").format(eui, command),'ascii'))
+                            del eui_data[eui][command]
+                            eui_data[eui] = {"":False}
+                        else:
+                            ser.write(bytes(("AT+DATA={0}:{1}:\r\n").format(eui, command),'ascii'))
+                        time.sleep(0.044)
+                        log.info("{0} send to {1}".format(command, eui))
+            
 
 if __name__ == "__main__":
     global lock
