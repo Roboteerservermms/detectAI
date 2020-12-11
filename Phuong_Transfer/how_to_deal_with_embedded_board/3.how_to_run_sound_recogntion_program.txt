@@ -1,0 +1,11 @@
+1. Make sure Tensorflow(2.1) and Librosa (latest version) are already installed
+
+2. Plug in Microphone and check if it is detected by the OS
+
+3. Point to the folder where the program is stored, e.g. D:\soundrecognition
+
+cd D:\soundrecognition
+
+3. Run the program
+
+python3 Sound_Real_Time_Test_V2.py

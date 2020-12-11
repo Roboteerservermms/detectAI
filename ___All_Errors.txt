@@ -1,0 +1,46 @@
+CorrelationId: aaafc8f0-7029-4384-a852-ac2b236045cf
+UTC DateTime: 2020-12-04 ?? 6:15:56
+
+The following files/folders have not been downloaded
+1. Phuong_Transfer/test/Clapping/augmentation_0.8_1_216659_ptp8ss_clap-95bpm-3_2_1.wav
+2. Phuong_Transfer/test/Clapping/augmentation_0.8_1_216659_ptp8ss_clap-95bpm-3_2_2.wav
+3. Phuong_Transfer/test/Clapping/augmentation_0.8_1_216659_ptp8ss_clap-95bpm-3_2_3.wav
+4. Phuong_Transfer/test/Clapping/augmentation_0.8_1_216659_ptp8ss_clap-95bpm-3_2_4.wav
+5. Phuong_Transfer/test/Clapping/augmentation_0.8_1_216659_ptp8ss_clap-95bpm-3_2_5.wav
+6. Phuong_Transfer/test/Clapping/augmentation_0.8_1_218212_reitanna_glovedhandsclapping4.wav
+7. Phuong_Transfer/test/Clapping/augmentation_0.8_1_218213_reitanna_glovedhandsclapping3.wav
+8. Phuong_Transfer/test/Clapping/augmentation_0.8_1_218214_reitanna_glovedhandsclapping2.wav
+9. Phuong_Transfer/test/Clapping/augmentation_0.8_1_218215_reitanna_glovedhandsclapping.wav
+10. Phuong_Transfer/test/Clapping/augmentation_0.8_1_219171_jagadamba_clap-02.wav
+11. Phuong_Transfer/test/Clapping/augmentation_0.8_1_220371_micro_hand-claps-102bpm_1_1.wav
+12. Phuong_Transfer/test/Clapping/augmentation_0.8_1_220371_micro_hand-claps-102bpm_1_2.wav
+13. Phuong_Transfer/test/Clapping/augmentation_0.8_1_220371_micro_hand-claps-102bpm_1_3.wav
+14. Phuong_Transfer/test/Clapping/augmentation_0.8_1_220371_micro_hand-claps-102bpm_1_4.wav
+15. Phuong_Transfer/test/Clapping/augmentation_0.8_1_220371_micro_hand-claps-102bpm_1_5.wav
+16. Phuong_Transfer/test/Clapping/augmentation_0.8_1_220371_micro_hand-claps-102bpm_1_6.wav
+17. Phuong_Transfer/test/Clapping/augmentation_0.8_1_220371_micro_hand-claps-102bpm_2_1.wav
+18. Phuong_Transfer/test/Clapping/augmentation_0.8_1_220371_micro_hand-claps-102bpm_2_2.wav
+19. Phuong_Transfer/test/Clapping/augmentation_0.8_1_22742_franciscopadilla_39-hand-clap.wav
+20. Phuong_Transfer/test/Clapping/augmentation_0.8_1_22786_franciscopadilla_clap-hollow.wav
+21. Phuong_Transfer/test/Clapping/augmentation_0.8_1_23f3be5c_Clapping.wav
+22. Phuong_Transfer/test/Clapping/augmentation_0.8_1_244568_young-daddy_clap-clean-reverb.wav
+23. Phuong_Transfer/test/Clapping/augmentation_0.8_1_249711_angienm_claps_1_1.wav
+24. Phuong_Transfer/test/Clapping/augmentation_0.8_1_249711_angienm_claps_1_2.wav
+25. Phuong_Transfer/test/Clapping/augmentation_0.8_1_249711_angienm_claps_1_3.wav
+26. Phuong_Transfer/test/Clapping/augmentation_0.8_1_249711_angienm_claps_1_4.wav
+27. Phuong_Transfer/test/Clapping/augmentation_0.8_1_249711_angienm_claps_1_5.wav
+28. Phuong_Transfer/test/Clapping/augmentation_0.8_1_249711_angienm_claps_1_6.wav
+29. Phuong_Transfer/test/Clapping/augmentation_0.8_1_249711_angienm_claps_2_1.wav
+30. Phuong_Transfer/test/Clapping/augmentation_0.8_1_249711_angienm_claps_2_2.wav
+31. Phuong_Transfer/test/Clapping/augmentation_0.8_1_249711_angienm_claps_2_3.wav
+32. Phuong_Transfer/test/Clapping/augmentation_0.8_1_249711_angienm_claps_2_4.wav
+33. Phuong_Transfer/test/Clapping
+34. Phuong_Transfer/test/Crowd_clapping
+35. Phuong_Transfer/test/Screaming
+36. Phuong_Transfer/train
+37. Phuong_Transfer/train_source_code
+38. Phuong_Transfer/1.how_to_reprocess_sound_data.docx
+39. Phuong_Transfer/2.how_to_augment_sound_data.docx
+40. Phuong_Transfer/3.how_to_train.docx
+41. Phuong_Transfer/4.how_to_evaluate_model.docx
+42. Phuong_Transfer/README.txt

@@ -12,7 +12,6 @@ import logging
 import queue
 import os
 
-
 def ReadLabelFile(file_path):
     with open(file_path, 'r') as (f):
         lines = f.readlines()
@@ -78,11 +77,11 @@ def detectThread(l_q, d_q ,exitThread):
                         if detect == 1:
                             accumulate = 0
                             detect = 0
+                            lock.acquire()
+                            d_q.put(True)
+                            lock.release()
                             if not on_state:
                                     on_state = True
-                                    lock.acquire()
-                                    d_q.put(True)
-                                    lock.release()
                                     log.info("AI: light's on")
                                     os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                                     accumulate = 0

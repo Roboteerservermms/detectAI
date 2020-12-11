@@ -7,11 +7,12 @@ QRNG=$(dmesg | grep qrng | grep error)
 GPIO_DIR=$(ls /sys/class/gpio/ | grep 65)
 
 echo "Checking QRNG Security key"
-if [ $QRNG ]; then
-        echo "Please Check Security key!"
-        exit 255
-else
+if [ -z $QRNG ]; then
         echo "Found Security key!"
+else
+	echo "Please Check Security key!"
+        exit 255
+        
 fi
 if [ -z $GPIO_DIR ]; then
         echo "Start GPIO Running!"

@@ -31,37 +31,55 @@ def protocol(rawdata):
 
     tmp = ''.join(rawdata)    
     if "RECV" in tmp: ## 어떤 데이터를 받게 되며
-        recv_eui = tmp.split(":")[1]
-        p = tmp.split(":")[3]
-        log.info("protocol is {}".format(p))
-        if p == "DETECT":
-            recvdata = tmp.split(":")[4]
-            log.info("LoRa: receving data {0} from {1}".format(recvdata, recv_eui))
-            if recvdata == "LIGHTON":
-                lora_detect = True
-                eui_data[recv_eui]= "{}:RECV".format(p)
-            if recvdata == "RECV":
-                log.info("Detect lighton command from {} is sucess".format(p))
-        elif p == "LOCATE":
-            recvdata = tmp.split(":")[4]
-             ## LOCATE 프로토콜은 위도 경도 순서로 보내지며 해당 프로토콜은 타 보드의 위치정보를 저장하는 용도로 사용된다.
-            goal_latitude = recvdata.split(",")[0]
-            goal_longitude = recvdata.split(",")[1]
-            goal_latitude  = float(goal_latitude)
-            goal_longitude = float(goal_longitude)
-            goal = (goal_latitude, goal_longitude)
-            distance = haversine(start, goal, unit='m') ## 위도 경도를 이용하여 거리를 계산한다.
-            log.info("LoRa : distance between {0} and me is {1}".format(eui_data, distance))
-            if recvdata == "RECV":
-                log.info("Locate command is sucess")
-        elif p == "RANGE":
-            recvdata = tmp.split(":")[4]
-            # RANGE 프로토콜은 객체 검출 시 사용되는 거리 민감도수정 값을 반환한다
-            dist_range = float(recvdata)
-            log.info("LoRa : change distance to send detection data")
-            log.info("LoRa : distance range changed {}".format(dist_range))
-            if recvdata == "RECV":
-                log.info("Range command is sucess")
+        if tmp.count(':') > 4:
+            recv_eui = tmp.split(":")[1]
+            p = tmp.split(":")[3]
+            log.info("protocol is {}".format(p))
+            if p == "DETECT":
+                recvdata = tmp.split(":")[4]
+                log.info("LoRa: receving data {0} from {1}".format(recvdata, recv_eui))
+                if recvdata == "LIGHTON":
+                    lora_detect = True
+                    eui_data[recv_eui]= "{}:RECV".format(p)
+                if recvdata == "RECV":
+                    log.info("Detect lighton command from {} is sucess".format(p))
+            elif p == "LOCATE":
+                recvdata = tmp.split(":")[4]
+                ## LOCATE 프로토콜은 위도 경도 순서로 보내지며 해당 프로토콜은 타 보드의 위치정보를 저장하는 용도로 사용된다.
+                goal_latitude = recvdata.split(",")[0]
+                goal_longitude = recvdata.split(",")[1]
+                goal_latitude  = float(goal_latitude)
+                goal_longitude = float(goal_longitude)
+                goal = (goal_latitude, goal_longitude)
+                distance = haversine(start, goal, unit='m') ## 위도 경도를 이용하여 거리를 계산한다.
+                log.info("LoRa : distance between {0} and me is {1}".format(eui_data, distance))
+                if recvdata == "RECV":
+                    log.info("Locate command is sucess")
+            elif p == "RANGE":
+                recvdata = tmp.split(":")[4]
+                # RANGE 프로토콜은 객체 검출 시 사용되는 거리 민감도수정 값을 반환한다
+                dist_range = float(recvdata)
+                log.info("LoRa : change distance to send detection data")
+                log.info("LoRa : distance range changed {}".format(dist_range))
+                if recvdata == "RECV":
+                    log.info("Range command is sucess")
+            elif p == "SETTING":
+                if tmp.count(':') > 5:
+                    setting_protocol = tmp.split(":")[4]
+                    setting_data = tmp.split(":")[5]
+                    if setting_protocol == "TIME":
+                        time_q = setting_data
+                        eui_data[recv_eui]= "{}:RECV".format(p)
+                    elif setting_protocol == "THRESHOLD":
+                        thresh_q = setting_data
+                        eui_data[recv_eui]= "{}:RECV".format(p)
+                    elif setting_protocol == "LOCATE":
+                        
+                    elif setting_protocol == "RECV":
+                        log.info("setting data from {0} change to {1} ".format(recv_eui,setting_data))
+                        
+
+
 
 
 #쓰레드 종료용 시그널 함수

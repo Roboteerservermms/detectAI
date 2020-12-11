@@ -1,0 +1,69 @@
+How to install Tensorflow(2.1) and Librosa (latest version) on Raspberry pi 4
+
+1. Check if llvm is installed
+
+sudo llvm-config
+
+if the result is nothing then run:
+sudo apt-get install llvm-7
+sudo ln -s /usr/bin/llvm-config-7 /usr/bin/llvm-config
+
+2. Check the compatibility between llvm and llvmlite via link https://pypi.org/project/llvmlite/
+
+3. Install llvmlite (llvmlite 0.29.0 is compatible with llvm-7)
+
+sudo LLVM_CONFIG=/usr/bin/llvm-config pip3 install llvmlite==0.29.0
+
+(if pip is not installed yet, please install it by search on how to install using google)
+
+4. Install numba 0.44.0
+
+sudo LLVM_CONFIG=/usr/bin/llvm-config pip3 install numba==0.44.0
+
+(reference to https://stackoverflow.com/questions/46751140/running-librosa-numba-on-raspberry-pi-3 )
+
+5. Install librosa
+
+sudo LLVM_CONFIG=/usr/bin/llvm-config pip3 install librosa
+
+while installing librosa, if error occurs in scipy then download a compatible version from https://www.piwheels.org/simple/scipy/ and run on Rasp
+
+(reference to https://raspberrypi.stackexchange.com/questions/8308/how-to-install-latest-scipy-version-on-raspberry-pi)
+
+6. Install tensorflow from a downloaded build based on Rasp pi
+
+sudo wget http://1.229.109.140:3562/tensorflow/tensorflow-2.1.0/tensorflow-2.1.0-cp37-none-linux_armv7l.whl
+sudo pip3 install tensorflow-2.1.0-cp37-none-linux_armv7l.whl
+
+if error related to wrapt occurs, please uninstall wrapt
+sudo pip3 install wrapt --upgrade --ignore-installed
+
+7. Install pyaudio
+
+sudo apt-get install portaudio19-dev python-pyaudio
+sudo pip3 install pyaudio
+
+8. Install other libs
+
+sudo pip3 install matplotlib
+sudo pip3 install pandas
+
+9. Notes:
+
+9.1 Check if librosa and tensorflow are imported using some simple codes
+python3
+>> import librosa
+>> librosa.__version__
+>> import tensorflow as tf
+>> tf.__version__
+
+9.2 If error of h5py happens, please 
+- Reboot OS
+sudo apt-get install
+- Force an installation of a specific version
+sudo pip3 install h5py==2.6.0
+
+(reference to https://stackoverflow.com/questions/48965309/h5py-import-error-on-libhdf5-serial-so-100)
+
+
+
