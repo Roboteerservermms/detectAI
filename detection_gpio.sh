@@ -3,7 +3,7 @@ chmod 775 /sys/class/gpio/export
 chmod 775 /sys/class/gpio/unexport
 echo "Start AI Detection!"
 GPIO=65
-QRNG=$(dmesg | grep qrng | grep error)
+QRNG=$(hexdump -C /dev/qrng-char -n 10)
 GPIO_DIR=$(ls /sys/class/gpio/ | grep 65)
 
 echo "Checking QRNG Security key"
