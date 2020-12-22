@@ -1,0 +1,8 @@
+llvm-7
+llvmlite==0.29.0
+numba==0.44.0
+scipy
+numpy==1.17.3
+librosa
+tensorflow-2.1.0
+pyaudio matplotlib pandas

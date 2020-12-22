@@ -43,6 +43,7 @@ def protocol(rawdata):
                     eui_data[recv_eui]= "{}:RECV".format(p)
                 if recvdata == "RECV":
                     log.info("Detect lighton command from {} is sucess".format(p))
+                    eui_data[recv_eui] = ""
             elif p == "LOCATE":
                 recvdata = tmp.split(":")[4]
                 ## LOCATE 프로토콜은 위도 경도 순서로 보내지며 해당 프로토콜은 타 보드의 위치정보를 저장하는 용도로 사용된다.
@@ -74,7 +75,7 @@ def protocol(rawdata):
                         thresh_q = setting_data
                         eui_data[recv_eui]= "{}:RECV".format(p)
                     elif setting_protocol == "LOCATE":
-                        
+                        eui_data[recv_eui]= "{}:RECV".format(p)
                     elif setting_protocol == "RECV":
                         log.info("setting data from {0} change to {1} ".format(recv_eui,setting_data))
                         
@@ -113,13 +114,8 @@ def readThread(ser, lora_q, detect_q, exitThread):
                         detect_ret = False
         lock.release()
         #데이터가 있있다면
-        for c in ser.read():
-            #line 변수에 차곡차곡 추가하여 넣는다.
-            line.append(chr(c))
-            if c == 10: #라인의 끝을 만나면..
-                #데이터 처리 함수로 호출
-                protocol(line)
-                del line[:]
+        reading = ser.readline().decode()
+        protocol(reading)
         lock.acquire()
         lora_q.put(lora_detect)
         lora_detect = False
@@ -129,7 +125,6 @@ def readThread(ser, lora_q, detect_q, exitThread):
             if eui_data[eui]:
                 command = eui_data[eui]
                 ser.write(bytes(("AT+DATA={0}:{1}:\r\n").format(eui, command),'ascii'))
-                time.sleep(0.044)
                 log.info("{0} send to {1}".format(command, eui))
                 eui_data[eui] = ""
             
