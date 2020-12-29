@@ -193,6 +193,7 @@ def on_predicted():
                 # partial_file_name = "Car_crash"
                 fpath = WAVE_OUTPUT_FILENAME + "_" + partial_file_name + "_" + str(k) + ".wav"
                 scipy.io.wavfile.write(fpath, RATE, np.array(raw_audio_data).astype('int16'))
+		#감지했을때 실행되는 것들 
         
         current_datetime = datetime.datetime.now()
 

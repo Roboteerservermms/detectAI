@@ -11,6 +11,7 @@ import sys
 import logging
 import queue
 import os
+import time
 
 def ReadLabelFile(file_path):
     with open(file_path, 'r') as (f):
@@ -22,7 +23,7 @@ def ReadLabelFile(file_path):
     return ret
 
 
-def detectThread(l_q, d_q ,exitThread):
+def detectThread(d_q ,exitThread):
     global accumulate, on_state, num_gpio, ontime, threshold
 
     num_gpio = 65
@@ -49,11 +50,6 @@ def detectThread(l_q, d_q ,exitThread):
     t_cur_2 = int(round(time.time()))
     lock = threading.Lock()
     while not exitThread:
-        lock.acquire()
-        if not l_q.empty():
-            lora_ret = l_q.get()
-        lock.release()
-
         if on_state:
             accumulate += t_cur_2 - t_cur_1
         else:
@@ -77,46 +73,28 @@ def detectThread(l_q, d_q ,exitThread):
                         if detect == 1:
                             accumulate = 0
                             detect = 0
-                            lock.acquire()
                             d_q.put(True)
-                            lock.release()
                             if not on_state:
                                     on_state = True
                                     log.info("AI: light's on")
                                     os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                                     accumulate = 0
-                elif lora_ret:
-                    lora_ret = False
-                    accumulate = 0
-                    if not on_state:
-                        on_state = True
-                        log.info("LoRa: light's on")
-                        os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
-                        accumulate = 0
+                                    frame = np.array(img)
+                                    frame = frame[:, :, ::-1].copy()
+                                    now = time.localtime()
+                                    filename = "human_detect_%04d/%02d/%02d %02d:%02d.png"%(now.tm_year + now.tm_mon, now.tm_mday, now.tm_hour, now.tm_min)
+                                    cv2.imwrite(filename,frame)
                 elif accumulate >= ontime * 1000:
                     if on_state:
                         on_state = False
-                        lock.acquire()
                         d_q.put(False)
-                        lock.release()
                         log.info("light's off")
                         os.system('echo 0 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
-        elif lora_ret:
-            lora_ret = False
-            accumulate = 0
-            if not on_state:
-                on_state = True
-                lora_ret = False
-                log.info("LoRa: light's on")
-                os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
-                accumulate = 0
         else:
             if accumulate >= ontime * 1000:
                 if on_state:
                     on_state = False
-                    lock.acquire()
                     d_q.put(False)
-                    lock.release()
                     log.info("light's off")
                     os.system('echo 0 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
 

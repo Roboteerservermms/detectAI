@@ -6,3 +6,4 @@ numpy==1.17.3
 librosa
 tensorflow-2.1.0
 pyaudio matplotlib pandas
+keras

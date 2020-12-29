@@ -18,17 +18,14 @@ start = (0,0)
 distance = None
 eui_data = {"1f9b23":"", "1f9b25":"", "1f9f0f":""}
 start_latitude, start_longitude = 37.540166, 127.056670
-lora_detect = False
-sending_data = {"":False}
+lora_ret = False
 log = logging.getLogger('detect')
 log.setLevel(logging.DEBUG)
 log_handler = logging.StreamHandler()
 log.addHandler(log_handler)
 
 def protocol(rawdata):
-    global lora_detect
-    global sending_data
-
+    global lora_ret
     tmp = ''.join(rawdata)    
     if "RECV" in tmp: ## 어떤 데이터를 받게 되며
         if tmp.count(':') > 4:
@@ -39,7 +36,7 @@ def protocol(rawdata):
                 recvdata = tmp.split(":")[4]
                 log.info("LoRa: receving data {0} from {1}".format(recvdata, recv_eui))
                 if recvdata == "LIGHTON":
-                    lora_detect = True
+                    lora_ret = True
                     eui_data[recv_eui]= "{}:RECV".format(p)
                 if recvdata == "RECV":
                     log.info("Detect lighton command from {} is sucess".format(p))
@@ -80,47 +77,34 @@ def protocol(rawdata):
                         log.info("setting data from {0} change to {1} ".format(recv_eui,setting_data))
                         
 
-
-
-
 #쓰레드 종료용 시그널 함수
-def handler(signum, frame):
+def sighandler(signum, frame):
     global exitThread
     exitThread = True
 
-#본 쓰레드
-def readThread(ser, lora_q, detect_q, exitThread):
-    global line
-    global lock
+def gpiohandler():
     global on_state
-    global lora_detect
-    global sending_data
+    global detect_ret
+    global lora_ret
+    if detect_ret:
+        on_state = True
+        os.system('echo 0 > /sys/class/gpio/gpio65/value')
+        for eui in eui_data.keys():
+            eui_data[eui] = "DETECT:LIGHTON"
+            detect_ret = False
+    elif lora_ret:
+        on_state = True
+        os.system('echo 1 > /sys/class/gpio/gpio65/value')
+    
 
-    ## 수신여부 성공했을때
-    detect_ret = False
-    ## 초기화
-    # 쓰레드 종료될때까지 계속 돌림
-    on_state = False
 
-    lock = threading.Lock()
+#본 쓰레드
+def readThread(ser,detect_q, exitThread):
+    global line
     while not exitThread:
-        lock.acquire()
-        if not detect_q.empty():
-            detect_ret = detect_q.get()
-            for eui in eui_data.keys():
-                if detect_ret:
-                    for eui in eui_data.keys():
-                        eui_data[eui] = "DETECT:LIGHTON"
-                        detect_ret = False
-        lock.release()
         #데이터가 있있다면
-        reading = ser.readline().decode()
+        reading = ser.readline().decode('ascii')
         protocol(reading)
-        lock.acquire()
-        lora_q.put(lora_detect)
-        lora_detect = False
-        lock.release()
-        
         for eui in eui_data.keys():
             if eui_data[eui]:
                 command = eui_data[eui]
@@ -130,18 +114,16 @@ def readThread(ser, lora_q, detect_q, exitThread):
             
 
 if __name__ == "__main__":
-    global lock
     #종료 시그널 등록
-    signal.signal(signal.SIGINT, handler)
+    signal.signal(signal.SIGINT, sighandler)
     #시리얼 열기
     ser = serial.Serial(port, baud, timeout=0)
-    lora_share_queue = queue.Queue(1)
     detect_share_queue = queue.Queue(1)
 
 
     #시리얼 읽을 쓰레드 생성
-    lorathread = threading.Thread(target=readThread, args=(ser,lora_share_queue,detect_share_queue, exitThread))
-    detectthread = threading.Thread(target=detectThread, args=(lora_share_queue, detect_share_queue, exitThread))
+    lorathread = threading.Thread(target=readThread, args=(ser,detect_share_queue, exitThread))
+    detectthread = threading.Thread(target=detectThread, args=(detect_share_queue, exitThread))
     #시작!
     lorathread.start()
     detectthread.start()
