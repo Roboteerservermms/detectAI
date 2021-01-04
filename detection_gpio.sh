@@ -1,20 +1,22 @@
 #!/bin/bash
+modprobe usbserial vendor=0x067b product=0x2303
 chmod 775 /sys/class/gpio/export
 chmod 775 /sys/class/gpio/unexport
+sudo modprobe usbserial vendor=0x067b product=0x2303
 echo "Start AI Detection!"
 GPIO=65
 QRNG=$(hexdump -C /dev/qrng-char -n 10)
 GPIO_DIR=$(ls /sys/class/gpio/ | grep 65)
 
 echo "Checking QRNG Security key"
-if [ -z $QRNG ]; then
+if [ -z "$QRNG" ]; then
         echo "Found Security key!"
 else
 	echo "Please Check Security key!"
         exit 255
         
 fi
-if [ -z $GPIO_DIR ]; then
+if [ -z "$GPIO_DIR" ]; then
         echo "Start GPIO Running!"
         echo "$GPIO" > /sys/class/gpio/export
         sleep 5
@@ -27,7 +29,6 @@ else
         sleep 5
         echo "out" > /sys/class/gpio/gpio$GPIO/direction
 fi
-export PYTHONPATH="/home/orangepi/"
-cd /home/orangepi/
-python3 /home/orangepi/LoRa.py
+export PYTHONPATH="/home/orangepi/detectAI"
+python3 $PYTHONPATH/LoRa.py
 
