@@ -1,0 +1,5 @@
+#compile like this (it can change cpp filename)
+g++ -o [filename] pir.cpp -std=c++11
+
+#run like this (it can change ./[output_filename] /dev/ttyUSB[num])
+sudo ./[filename] /dev/ttyUSB0
