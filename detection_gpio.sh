@@ -29,5 +29,6 @@ else
         echo "out" > /sys/class/gpio/gpio$GPIO/direction
 fi
 export PYTHONPATH="/home/orangepi/detectAI"
-python3 $PYTHONPATH/LoRa.py
+cd $PYTHONPATH
+python3 LoRa.py
 

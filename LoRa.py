@@ -95,6 +95,10 @@ def gpiohandler():
     elif lora_ret:
         on_state = True
         os.system('echo 1 > /sys/class/gpio/gpio65/value')
+    elif on_state:
+        timer = threading.Timer(30,gpiohandler)
+    
+    
     
 
 

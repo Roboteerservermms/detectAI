@@ -87,14 +87,12 @@ def detectThread(d_q ,exitThread):
                 elif accumulate >= ontime * 1000:
                     if on_state:
                         on_state = False
-                        d_q.put(False)
                         log.info("light's off")
                         os.system('echo 0 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
         else:
             if accumulate >= ontime * 1000:
                 if on_state:
                     on_state = False
-                    d_q.put(False)
                     log.info("light's off")
                     os.system('echo 0 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
 
