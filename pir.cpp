@@ -155,14 +155,14 @@ int main(int argc, char* argv[]){
     while(1){   
         int n = 0;
         char buf[1];
-        
-        if (select(USB + 1, &read_fds, &write_fds, &except_fds, &timeout) == 1)
+        int temp = select(USB + 1, &read_fds, &write_fds, &except_fds, &timeout);
+
+        if (temp == 1)
         {
             // fd is ready for reading
             n = read( USB, &buf, 1 );
             int b = buf[0]-'0';
             count++;
-
             arr[count]=b;
             
             detected=0;
@@ -193,26 +193,18 @@ int main(int argc, char* argv[]){
                                 if(detected==0){
                                     printf("Keep Detecting...\n");
                                     detect++;
-                                    if(detect>=10){
+                                    if(detect>=20){
                                         if(state==1){
-                                            printf("========led off========\n");
-                                            ofstream writeFile(output_filename.data());
-                                            if( writeFile.is_open()  ){
-                                                writeFile << "0";
-                                                writeFile.close();
-                                            }
-                                        state=0;
+                                            printf("========light off========\n");
+                                            popen("echo 0 > /sys/class/gpio/gpio65/value", "r");
+                                            state=0;
                                         }
                                     detect=0;
                                     }
                                 }
                                 else {
                                     printf("Human Is Detected\n");
-                                    ofstream writeFile(output_filename.data());
-                                    if(writeFile.is_open()){
-                                        writeFile << "1";
-                                        writeFile.close();
-                                    }
+                                    popen("echo 1 > /sys/class/gpio/gpio65/value", "r");
                                     state=1;
                                     detect=0;
                                     detected=0;
