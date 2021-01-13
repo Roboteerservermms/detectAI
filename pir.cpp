@@ -192,21 +192,11 @@ int main(int argc, char* argv[]){
                                 
                                 if(detected==0){
                                     printf("Keep Detecting...\n");
-                                    detect++;
-                                    if(detect>=20){
-                                        if(state==1){
-                                            printf("========light off========\n");
-                                            popen("echo 0 > /sys/class/gpio/gpio65/value", "r");
-                                            state=0;
-                                        }
-                                    detect=0;
-                                    }
                                 }
                                 else {
                                     printf("Human Is Detected\n");
-                                    popen("echo 1 > /sys/class/gpio/gpio65/value", "r");
+                                    popen("echo 1 > /sys/class/gpio/gpio113/value", "r");
                                     state=1;
-                                    detect=0;
                                     detected=0;
                                 }
                             c=0;

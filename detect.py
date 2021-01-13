@@ -11,7 +11,7 @@ import sys
 import logging
 import queue
 import os
-import time
+
 
 def ReadLabelFile(file_path):
     with open(file_path, 'r') as (f):
@@ -22,11 +22,28 @@ def ReadLabelFile(file_path):
         ret[int(pair[0])] = pair[1].strip()
     return ret
 
+def ious(box1):
+  #[x1, y1, x2, y2]
+  box1 = np.array(box1)
+  def inner_iou(box2):
+    box2 = np.array(box2)
+    inter_upleft = np.maximum(box1[..., :2], box2[:2])
+    inter_botright = np.minimum(box1[..., 2:4], box2[2:4])
+    inter_wh = inter_botright - inter_upleft
+    inter = inter_wh[:, 0] * inter_wh[:, 1]
+    area_target = (box2[2] - box2[0]) * (box2[3] - box2[1])
+    area_box1 = (box1[..., 2] - box1[..., 0])
+    area_box1 *= (box1[..., 3] - box1[..., 1])
+    union = area_target + area_box1 - inter
+    iou = inter / union
+    return iou
+  return inner_iou
 
-def detectThread(d_q ,exitThread):
+
+def detectThread(l_q, d_q ,exitThread):
     global accumulate, on_state, num_gpio, ontime, threshold
 
-    num_gpio = 65
+    num_gpio = 111
     ontime = 30
     threshold = 60
 
@@ -37,19 +54,82 @@ def detectThread(d_q ,exitThread):
     
     log.info('Detection start')
     threshold = threshold / 100
-    engine = DetectionEngine('human0716.tflite')
+    engine = DetectionEngine('models.tflite')
     labelfile = 'labels.txt'
     labels = ReadLabelFile(labelfile) if labelfile else None
     labelids = labels.keys()
-    cap = cv2.VideoCapture(0)
+    # cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture("highway_01.mp4")
     accumulate = 0
     on_state = False
     detect = 0
     lora_ret = False
+    
+    # detection for moving vehicle
+    store_boxes = [] # past boxes for calculating IOU
+    curr_boxes = [] # boxes in current frame
+    num_store = 5
+    ret_ious = [0] * num_store # ious between (current-2 and current), (current-1 and current) frames
+    moving_threshold = [0.5, 0.80]
+    
     t_cur_1 = int(round(time.time()))
     t_cur_2 = int(round(time.time()))
     lock = threading.Lock()
+    
+    class State(object):
+    
+        def __init__(self, logger, threading_lock, l_q, d_q):
+            self.logger = logger
+            self.lock = threading_lock
+            self.l_q = l_q
+            self.d_q = d_q
+        
+        def update_state(self, on=None, on_state=None):
+            if on is not None and on_state is not None:
+                if on:
+                    if not on_state:
+                        on_state = True
+                        self.lock.acquire()
+                        self.d_q.put(True)
+                        self.lock.release()
+                        self.logger.info("AI: light's on")
+                        os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
+                        accumulate = 0
+                        return on_state
+                else:
+                    if on_state:
+                        on_state = False
+                        self.lock.acquire()
+                        self.d_q.put(False)
+                        self.lock.release()
+                        self.logger.info("AI: light's off")
+                        os.system('echo 0 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
+                        return on_state
+
+        def update_lora_state(self, on=None, on_state=None):
+            if on is not None and on_state is not None:
+                if on:
+                    if not on_state:
+                        on_state = True
+                        self.logger.info("LoRa: light's on")
+                        os.system('echo 1 > /sys/class/gpio/gpio{}/value'.formay(num_gpio))
+                        accumulate = 0
+                        return on_state
+                else:
+                    if on_state:
+                        on_state = False
+                        self.logger.info("LoRa: light's off")
+                        os.system('echo 0 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
+                        return on_state
+    
+    state = State(log, lock, l_q, d_q)
+    
     while not exitThread:
+        lock.acquire()
+        if not l_q.empty():
+            lora_ret = l_q.get()
+        lock.release()
+
         if on_state:
             accumulate += t_cur_2 - t_cur_1
         else:
@@ -62,6 +142,7 @@ def detectThread(d_q ,exitThread):
         font = ImageFont.truetype('Ubuntu-L.ttf', fontsize)
         draw = ImageDraw.Draw(img)
         ans = engine.detect_with_image(img, threshold=threshold, keep_aspect_ratio=True, relative_coord=False, top_k=10)
+        
         if ans:
             detect = 1
             for obj in ans:
@@ -73,32 +154,56 @@ def detectThread(d_q ,exitThread):
                         if detect == 1:
                             accumulate = 0
                             detect = 0
-                            d_q.put(True)
-                            if not on_state:
-                                    on_state = True
-                                    log.info("AI: light's on")
-                                    os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
-                                    accumulate = 0
-                                    frame = np.array(img)
-                                    frame = frame[:, :, ::-1].copy()
-                                    now = time.localtime()
-                                    filename = "human_detect_%04d/%02d/%02d %02d:%02d.png"%(now.tm_year + now.tm_mon, now.tm_mday, now.tm_hour, now.tm_min)
-                                    cv2.imwrite(filename,frame)
+                            on_state = state.update_state(on=True, on_state=on_state)
+                    else:
+                        curr_boxes.append(box)
+
+                elif lora_ret:
+                    lora_ret = False
+                    accumulate = 0
+                    on_state = state.update_lora_state(on=True, on_state=on_state)
+                    
                 elif accumulate >= ontime * 1000:
-                    if on_state:
-                        on_state = False
-                        log.info("light's off")
-                        os.system('echo 0 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
+                    on_state = state.update_state(on=False, on_state=on_state)
+                    
+        elif lora_ret:
+            lora_ret = False
+            accumulate = 0
+            on_state = state.update_lora_state(on=True, on_state=on_state)
         else:
             if accumulate >= ontime * 1000:
-                if on_state:
-                    on_state = False
-                    log.info("light's off")
-                    os.system('echo 0 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
-
+                on_state = state.update_state(on=False, on_state=on_state)
+        
+        # detection for moving vehicle
+        store_boxes.append(np.expand_dims(np.array(curr_boxes), axis=0))
+        curr_boxes = []
+        
+        if len(store_boxes) > num_store:
+            del store_boxes[0]
+            
+            for i in range(num_store - 1):
+                if store_boxes[i].any() and store_boxes[-1].any():
+                    ret_ious[i] = np.apply_along_axis(ious(store_boxes[i].reshape((-1, 4))), 1, store_boxes[-1].reshape((-1, 4)))
+                else:
+                    ret_ious[i] = np.array([])
+            
+            is_moving = ret_ious.copy()
+            for moving in is_moving:
+                moving = np.asarray(moving)
+                moving = moving[moving > moving_threshold[0]]
+                moving = moving[moving <= moving_threshold[1]]
+                if moving.any():
+                    print("vehicle is moving")
+                    if detect == 1:
+                      accumulate = 0
+                      detect = 0
+                      on_state = state.update_state(on=True, on_state=on_state)
+                    break
+        
         frame = np.array(img)
         frame = frame[:, :, ::-1].copy()
         cv2.imshow('detection', frame)
+        
         if cv2.waitKey(1) == 27:
             log.error('exit program')
             break
