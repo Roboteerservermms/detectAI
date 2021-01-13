@@ -9,7 +9,6 @@ import threading
 import cv2, numpy as np, time
 import sys
 import logging
-import queue
 import os
 
 
@@ -18,8 +17,8 @@ def ReadLabelFile(file_path):
         lines = f.readlines()
     ret = {}
     for line in lines:
-        pair = line.strip().split(maxsplit=1)
-        ret[int(pair[0])] = pair[1].strip()
+        pCamerar = line.strip().split(maxsplit=1)
+        ret[int(pCamerar[0])] = pCamerar[1].strip()
     return ret
 
 def ious(box1):
@@ -40,7 +39,7 @@ def ious(box1):
   return inner_iou
 
 
-def detectThread(l_q, d_q ,exitThread):
+def detectThread(exitThread):
     global accumulate, on_state, num_gpio, ontime, threshold
 
     num_gpio = 111
@@ -58,12 +57,11 @@ def detectThread(l_q, d_q ,exitThread):
     labelfile = 'labels.txt'
     labels = ReadLabelFile(labelfile) if labelfile else None
     labelids = labels.keys()
-    # cap = cv2.VideoCapture(0)
-    cap = cv2.VideoCapture("highway_01.mp4")
+    cap = cv2.VideoCapture(0)
+    #cap = cv2.VideoCapture("highway_01.mp4")
     accumulate = 0
     on_state = False
     detect = 0
-    lora_ret = False
     
     # detection for moving vehicle
     store_boxes = [] # past boxes for calculating IOU
@@ -74,62 +72,31 @@ def detectThread(l_q, d_q ,exitThread):
     
     t_cur_1 = int(round(time.time()))
     t_cur_2 = int(round(time.time()))
-    lock = threading.Lock()
     
     class State(object):
     
-        def __init__(self, logger, threading_lock, l_q, d_q):
+        def __init__(self, logger):
             self.logger = logger
-            self.lock = threading_lock
-            self.l_q = l_q
-            self.d_q = d_q
         
         def update_state(self, on=None, on_state=None):
             if on is not None and on_state is not None:
                 if on:
                     if not on_state:
                         on_state = True
-                        self.lock.acquire()
-                        self.d_q.put(True)
-                        self.lock.release()
-                        self.logger.info("AI: light's on")
+                        self.logger.info("Camera: light's on")
                         os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                         accumulate = 0
                         return on_state
                 else:
                     if on_state:
                         on_state = False
-                        self.lock.acquire()
-                        self.d_q.put(False)
-                        self.lock.release()
-                        self.logger.info("AI: light's off")
-                        os.system('echo 0 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
-                        return on_state
-
-        def update_lora_state(self, on=None, on_state=None):
-            if on is not None and on_state is not None:
-                if on:
-                    if not on_state:
-                        on_state = True
-                        self.logger.info("LoRa: light's on")
-                        os.system('echo 1 > /sys/class/gpio/gpio{}/value'.formay(num_gpio))
-                        accumulate = 0
-                        return on_state
-                else:
-                    if on_state:
-                        on_state = False
-                        self.logger.info("LoRa: light's off")
+                        self.logger.info("Camera: light's off")
                         os.system('echo 0 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                         return on_state
     
-    state = State(log, lock, l_q, d_q)
+    state = State(log)
     
     while not exitThread:
-        lock.acquire()
-        if not l_q.empty():
-            lora_ret = l_q.get()
-        lock.release()
-
         if on_state:
             accumulate += t_cur_2 - t_cur_1
         else:
@@ -142,7 +109,6 @@ def detectThread(l_q, d_q ,exitThread):
         font = ImageFont.truetype('Ubuntu-L.ttf', fontsize)
         draw = ImageDraw.Draw(img)
         ans = engine.detect_with_image(img, threshold=threshold, keep_aspect_ratio=True, relative_coord=False, top_k=10)
-        
         if ans:
             detect = 1
             for obj in ans:
@@ -157,23 +123,11 @@ def detectThread(l_q, d_q ,exitThread):
                             on_state = state.update_state(on=True, on_state=on_state)
                     else:
                         curr_boxes.append(box)
-
-                elif lora_ret:
-                    lora_ret = False
-                    accumulate = 0
-                    on_state = state.update_lora_state(on=True, on_state=on_state)
-                    
                 elif accumulate >= ontime * 1000:
                     on_state = state.update_state(on=False, on_state=on_state)
-                    
-        elif lora_ret:
-            lora_ret = False
-            accumulate = 0
-            on_state = state.update_lora_state(on=True, on_state=on_state)
         else:
             if accumulate >= ontime * 1000:
                 on_state = state.update_state(on=False, on_state=on_state)
-        
         # detection for moving vehicle
         store_boxes.append(np.expand_dims(np.array(curr_boxes), axis=0))
         curr_boxes = []
@@ -203,8 +157,7 @@ def detectThread(l_q, d_q ,exitThread):
         frame = np.array(img)
         frame = frame[:, :, ::-1].copy()
         cv2.imshow('detection', frame)
-        
-        if cv2.waitKey(1) == 27:
+        if cv2.wCameratKey(1) == 27:
             log.error('exit program')
             break
         t_cur_2 = int(round(time.time() * 1000))
