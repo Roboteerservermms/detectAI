@@ -11,6 +11,7 @@ import pyaudio
 import pandas as pd
 import shutil
 from os import listdir
+from os import system
 from os.path import isfile, join
 # import struct
 import queue
@@ -26,6 +27,10 @@ from tensorflow.keras.layers import (Convolution2D, BatchNormalization, Flatten,
 import time
 import datetime
 from time import strftime
+
+import argparse
+
+num_gpio = 112
 
 class Config(object):
     def __init__(self,
@@ -175,7 +180,7 @@ def callback(in_data, frame_count, time_info, status):
 def on_predicted():
     global k
     global current_index
-    
+    flag = 0
     if (len(pred_queue) == PRED_TIMES):
         label_indexes = []
         predictions = []
@@ -193,12 +198,19 @@ def on_predicted():
                 # partial_file_name = "Car_crash"
                 fpath = WAVE_OUTPUT_FILENAME + "_" + partial_file_name + "_" + str(k) + ".wav"
                 scipy.io.wavfile.write(fpath, RATE, np.array(raw_audio_data).astype('int16'))
-		#감지했을때 실행되는 것들 
         
         current_datetime = datetime.datetime.now()
 
         if (current_index > -1):
-            print("{}    {}".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), LABELS[current_index]))
+            if (current_index == 0):
+                print("{}    {}".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Back_ground'))
+                flag = 0
+                # print("{}    {}".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), LABELS[current_index]))
+            else :
+                print("{}    {}".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Object'))
+                flag = 1
+                os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
+                
         
         if (DEBUG):
             print("Current index: " + str(current_index))
@@ -206,9 +218,32 @@ def on_predicted():
         if (current_index != label_indexes[0]):
             result = np.array(LABELS)[np.argsort(-predictions[0], axis=1)[:, :1]][0][0]
             
-            print("-"*100)
-            print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
-            
+            if (result == 'Back_ground'):
+                print("-"*100)
+                print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
+                flag = 0
+            else :
+                if (np.max(predictions[0])/np.sum(predictions[0]) > 0.8):
+                    # print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
+                    if (current_index == 0) :
+                        print("-"*100)
+                        # print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
+                        print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Object', round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
+                        flag = 1
+                        os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
+                    else :
+                        print("{}    {}".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Object'))
+                        flag = 1
+                        os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
+                else :
+                    if (current_index == 0) :
+                        # print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
+                        print("{}    {}".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Back_ground'))
+                        flag = 0
+                    else :
+                        print("-"*100)
+                        print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Back_ground', round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
+                        flag = 0
             # result = LABELS[0]
             # if(label_indexes[0] == 1 or label_indexes[0] == 2):
             #     result = "Car"
@@ -219,6 +254,8 @@ def on_predicted():
             # print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
     
             current_index = label_indexes[0]
+            if (flag == 0):
+                current_index = 0
             if (DEBUG):
                 print("Updated index: " + str(current_index))
         
@@ -227,9 +264,35 @@ def on_predicted():
             if (i + 1 < number_of_results and label_indexes[i + 1] != label_indexes[i]):
                 top1_max = np.array(LABELS)[np.argsort(-predictions[i + 1], axis=1)[:, :1]]
                 
-                print("-"*100)
-                print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), top1_max[0][0], round(100 * np.max(predictions[i + 1])/np.sum(predictions[i + 1]),2)))
-    
+                # print("-"*100)
+                # print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), top1_max[0][0], round(100 * np.max(predictions[i + 1])/np.sum(predictions[i + 1]),2)))
+
+                if (top1_max[0][0] == 'Back_ground'):
+                    print("-"*100)
+                    print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), top1_max[0][0], round(100 * np.max(predictions[i + 1])/np.sum(predictions[i + 1]),2)))
+                    flag = 0
+                else :
+                    if (np.max(predictions[i + 1])/np.sum(predictions[i + 1]) > 0.8):
+                        # print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
+                        if (current_index == 0) :
+                            print("-"*100)
+                            # print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
+                            print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Object', round(100 * np.max(predictions[i + 1])/np.sum(predictions[i + 1]),2)))
+                            flag = 1
+                            os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
+                        else :
+                            print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Object', round(100 * np.max(predictions[i + 1])/np.sum(predictions[i + 1]),2)))
+                            flag = 1
+                            os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
+                    else :
+                        if (current_index == 0) :
+                            # print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
+                            print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Back_ground', round(100 * np.max(predictions[i + 1])/np.sum(predictions[i + 1]),2)))
+                            flag = 0
+                        else :
+                            print("-"*100)
+                            print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Back_ground', round(100 * np.max(predictions[i + 1])/np.sum(predictions[i + 1]),2)))
+                            flag = 0
                 # if(label_indexes[i + 1] == 1 or label_indexes[i + 1] == 2):
                 #     result = "Car"
                 # elif(label_indexes[i + 1] == 3 or label_indexes[i + 1] == 4):  
@@ -239,6 +302,8 @@ def on_predicted():
                 # print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))   
         
                 current_index = label_indexes[i + 1]
+                if (flag == 0) :
+                    current_index = 0
                 if (DEBUG):
                     print("Updated index: " + str(current_index))
     
@@ -316,6 +381,13 @@ def run_predictor():
 
 if __name__ == "__main__":
     DEBUG = False
+    
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--threshold', type=float, default=0.8, help='Sound threshold')
+
+    args = parser.parse_args()
+    threshold = args.threshold
+    print(threshold)
 
     SAMPLES_PER_CHUNK = 4096
     FORMAT = pyaudio.paInt16
@@ -339,14 +411,14 @@ if __name__ == "__main__":
     # STEP_NUMBER_SAMPLES = 11025
     # PRED_TIMES = 8
     
-    STEP_NUMBER_SAMPLES = 17640
-    PRED_TIMES = 5
+    # STEP_NUMBER_SAMPLES = 17640
+    # PRED_TIMES = 5
     
     # STEP_NUMBER_SAMPLES = 22050
     # PRED_TIMES = 4
     
-    # STEP_NUMBER_SAMPLES = 44100
-    # PRED_TIMES = 2
+    STEP_NUMBER_SAMPLES = 44100
+    PRED_TIMES = 2
     
     # STEP_NUMBER_SAMPLES = 88200
     # PRED_TIMES = 1
