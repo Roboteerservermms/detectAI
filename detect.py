@@ -39,11 +39,10 @@ def ious(box1):
   return inner_iou
 
 
-def detectThread(exitThread):
-    global accumulate, on_state, num_gpio, ontime, threshold
+def detectThread(ontime, exitThread):
+    global accumulate, on_state, num_gpio, threshold
 
     num_gpio = 111
-    ontime = 30
     threshold = 60
 
     log = logging.getLogger('detect')

@@ -67,22 +67,18 @@ def readThread(ser, exitThread):
     ## 초기화
     # 쓰레드 종료될때까지 계속 돌림
     on_state = False
-    while not exitThread:
-        reading = ser.readline().decode()
-        protocol(reading)
-
-        
-            
-def writeThread(ser, exitThread):
     start = time.time()
     command = ""
     while not exitThread:
+        reading = ser.readline().decode()
+        protocol(reading)
         t = time.time() - start
         camera_detect = os.popen('cat /sys/class/gpio/gpio111/value').read()
         audio_detect = os.popen('cat /sys/class/gpio/gpio112/value').read()
         pir_detect = os.popen('cat /sys/class/gpio/gpio113/value').read()
 
-        if camera_detect | audio_detect | pir_detect | lora_detect:
+        if camera_detect == "1" or audio_detect == "1"or pir_detect == "1" or lora_detect == "1":
+            on_state = True
             if camera_detect:
                 command = "CAMERA:LIGHTON"
                 os.system('echo 0 > /sys/class/gpio/gpio{}/value'.format(camera_gpio))
@@ -98,23 +94,25 @@ def writeThread(ser, exitThread):
             os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(main_gpio))
             start = time.time()
         else :
-            t = time.time() - start
-            if t >= 30:
-                os.system('echo 0 > /sys/class/gpio/gpio{}/value'.format(main_gpio))
-                log.info("light off")
-    
+            if on_state:
+            	t = time.time() - start
+            	if t >= ontime:
+                	os.system('echo 0 > /sys/class/gpio/gpio{}/value'.format(main_gpio))
+                	log.info("light off")
+                	on_state = False
+
+
 
 if __name__ == "__main__":
+    global ontime
+    ontime = 30
     #종료 시그널 등록
     signal.signal(signal.SIGINT, handler)
     #시리얼 열기
     ser = serial.Serial(port, baud, timeout=0)
-    lock = threading.Lock()
     #시리얼 읽을 쓰레드 생성
     read_t = threading.Thread(target=readThread, args=(ser,exitThread))
-    camera_t = threading.Thread(target=detectThread, args=(exitThread))
-    write_t = threading.Thread(target=writeThread, args=(ser, exitThread))
+    camera_t = threading.Thread(target=detectThread, args=(ontime,exitThread))
     #시작!
     read_t.start()
     camera_t.start()
-    write_t.start()
