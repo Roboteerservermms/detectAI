@@ -7,10 +7,10 @@ for gpio in "65" "111" "112" "113"; do
         if [ -n "$GPIO_DIR" ]; then
                 echo "GPIO already exist from past error"
                 echo ${gpio} > /sys/class/gpio/unexport
-                sleep 2
+                sleep 1
         fi
         echo ${gpio} > /sys/class/gpio/export
-        sleep 2
+        sleep 1
         echo "out" > /sys/class/gpio/gpio${gpio}/direction
 done
 export PYTHONPATH="/home/orangepi/detectAI"
@@ -18,5 +18,5 @@ cd $PYTHONPATH
 echo "compile pir!"
 g++ -o pir pir.cpp -std=c++11
 echo "load program!"
-python3 LoRa.py
+python3 LoRa.py && ./pir
 

@@ -65,7 +65,7 @@ def detectThread(ontime, exitThread):
     # detection for moving vehicle
     store_boxes = [] # past boxes for calculating IOU
     curr_boxes = [] # boxes in current frame
-    num_store = 5
+    num_store = 4
     ret_ious = [0] * num_store # ious between (current-2 and current), (current-1 and current) frames
     moving_threshold = [0.5, 0.80]
     
@@ -80,16 +80,15 @@ def detectThread(ontime, exitThread):
         def update_state(self, on=None, on_state=None):
             if on is not None and on_state is not None:
                 if on:
+                    os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                     if not on_state:
                         on_state = True
                         self.logger.info("Camera: light's on")
-                        os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                         accumulate = 0
                         return on_state
                 else:
                     if on_state:
                         on_state = False
-                        self.logger.info("Camera: light's off")
                         os.system('echo 0 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                         return on_state
     
@@ -156,7 +155,7 @@ def detectThread(ontime, exitThread):
         frame = np.array(img)
         frame = frame[:, :, ::-1].copy()
         cv2.imshow('detection', frame)
-        if cv2.wCameratKey(1) == 27:
+        if cv2.waitKey(1) == 27:
             log.error('exit program')
             break
         t_cur_2 = int(round(time.time() * 1000))

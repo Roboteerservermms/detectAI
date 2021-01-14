@@ -20,7 +20,7 @@ pir_gpio = 113
 exitThread = False   # 쓰레드 종료용 변수
 start = (0,0)
 distance = None
-eui_data = "1f9f0c", "1f9f0d"
+eui_data = "1f9f0c"
 
 start_latitude, start_longitude = 37.540166, 127.056670
 lora_detect = False
@@ -29,7 +29,8 @@ log.setLevel(logging.DEBUG)
 log_handler = logging.StreamHandler()
 log.addHandler(log_handler)
 
-def protocol(tmp):
+def protocol(rawdata):
+    tmp = ''.join(rawdata)
     global lora_detect
     if "RECV" in tmp: ## 어떤 데이터를 받게 되며
         if tmp.count(':') > 4:
@@ -41,18 +42,6 @@ def protocol(tmp):
                 log.info("LoRa: receving data {0} from {1}".format(recvdata, recv_eui))
                 if recvdata == "LIGHTON":
                     lora_detect = True
-            elif p == "LOCATE":
-                recvdata = tmp.split(":")[4]
-                ## LOCATE 프로토콜은 위도 경도 순서로 보내지며 해당 프로토콜은 타 보드의 위치정보를 저장하는 용도로 사용된다.
-                goal_latitude = recvdata.split(",")[0]
-                goal_longitude = recvdata.split(",")[1]
-                goal_latitude  = float(goal_latitude)
-                goal_longitude = float(goal_longitude)
-                goal = (goal_latitude, goal_longitude)
-                distance = haversine(start, goal, unit='m') ## 위도 경도를 이용하여 거리를 계산한다.
-                log.info("LoRa : distance between {0} and me is {1}".format(eui_data, distance))
-                if recvdata == "RECV":
-                    log.info("Locate command is sucess")
 
 #쓰레드 종료용 시그널 함수
 def handler(signum, frame):
@@ -67,30 +56,36 @@ def readThread(ser, exitThread):
     ## 초기화
     # 쓰레드 종료될때까지 계속 돌림
     on_state = False
+    while not exitThread:
+        for c in ser.read():
+            line.append(chr(c))
+            if c == 10:
+               protocol(line)
+               del line
+
+def writeThread(ser, exitThread):
+    on_state = False
     start = time.time()
     command = ""
     while not exitThread:
-        reading = ser.readline().decode()
-        protocol(reading)
-        t = time.time() - start
         camera_detect = os.popen('cat /sys/class/gpio/gpio111/value').read()
         audio_detect = os.popen('cat /sys/class/gpio/gpio112/value').read()
         pir_detect = os.popen('cat /sys/class/gpio/gpio113/value').read()
-
-        if camera_detect == "1" or audio_detect == "1"or pir_detect == "1" or lora_detect == "1":
-            on_state = True
+        if camera_detect == "1" or audio_detect == "1" or pir_detect == "1" or lora_detect == "1":
             if camera_detect:
                 command = "CAMERA:LIGHTON"
-                os.system('echo 0 > /sys/class/gpio/gpio{}/value'.format(camera_gpio))
+                os.system("echo 0 > /sys/class/gpio/gpio111/value")
             elif audio_detect:
                 command = "AUDIO:LIGHTON"
-                os.system('echo 0 > /sys/class/gpio/gpio{}/value'.format(audio_gpio))
+                os.system('echo 0 > /sys/class/gpio/gpio112/value')
             elif pir_detect:
                 command = "PIR:LIGHTON"
-                os.system('echo 0 > /sys/class/gpio/gpio{}/value'.format(pir_gpio))
-            for eui in eui_data:
+                os.system('echo 0 > /sys/class/gpio/gpio113/value')
+            if not command :
                 ser.write(bytes(("AT+DATA={0}:{1}:\r\n").format(eui, command),'ascii'))
                 log.info("{0} command send to {1}".format(command, eui))
+                command = ""
+            on_state = True
             os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(main_gpio))
             start = time.time()
         else :
@@ -100,8 +95,6 @@ def readThread(ser, exitThread):
                 	os.system('echo 0 > /sys/class/gpio/gpio{}/value'.format(main_gpio))
                 	log.info("light off")
                 	on_state = False
-
-
 
 if __name__ == "__main__":
     global ontime
@@ -113,6 +106,8 @@ if __name__ == "__main__":
     #시리얼 읽을 쓰레드 생성
     read_t = threading.Thread(target=readThread, args=(ser,exitThread))
     camera_t = threading.Thread(target=detectThread, args=(ontime,exitThread))
+    write_t = threading.Thread(target=writeThread, args=(ser,exitThread))
     #시작!
     read_t.start()
     camera_t.start()
+    write_t.start()
