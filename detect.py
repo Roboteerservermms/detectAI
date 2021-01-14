@@ -57,7 +57,7 @@ def detectThread(ontime, exitThread):
     labels = ReadLabelFile(labelfile) if labelfile else None
     labelids = labels.keys()
     cap = cv2.VideoCapture(0)
-    #cap = cv2.VideoCapture("highway_01.mp4")
+    #cap = cv2.VideoCapture("./0724/vehicle_20m_01.mp4")
     accumulate = 0
     on_state = False
     detect = 0

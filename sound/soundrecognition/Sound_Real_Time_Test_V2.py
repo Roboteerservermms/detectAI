@@ -357,7 +357,7 @@ def run_predictor():
                 channels=CHANNELS,
                 rate=RATE,
                 input=True,
-                #input_device_index=0,
+                input_device_index=1,
                 frames_per_buffer=SAMPLES_PER_CHUNK,
                 start=False,
                 stream_callback=callback

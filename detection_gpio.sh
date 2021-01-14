@@ -17,6 +17,7 @@ export PYTHONPATH="/home/orangepi/detectAI"
 cd $PYTHONPATH
 echo "compile pir!"
 g++ -o pir pir.cpp -std=c++11
+pir=$(./pir /dev/ttyS2)
 echo "load program!"
-python3 LoRa.py && ./pir
+python3 LoRa.py && $pir
 

@@ -7,6 +7,7 @@ from haversine import haversine
 from detect import detectThread
 import logging
 import queue
+import subprocess
 
 line = [] #라인 단위로 데이터 가져올 리스트 변수
 
@@ -29,8 +30,7 @@ log.setLevel(logging.DEBUG)
 log_handler = logging.StreamHandler()
 log.addHandler(log_handler)
 
-def protocol(rawdata):
-    tmp = ''.join(rawdata)
+def protocol(tmp):
     global lora_detect
     if "RECV" in tmp: ## 어떤 데이터를 받게 되며
         if tmp.count(':') > 4:
@@ -57,36 +57,41 @@ def readThread(ser, exitThread):
     # 쓰레드 종료될때까지 계속 돌림
     on_state = False
     while not exitThread:
-        for c in ser.read():
-            line.append(chr(c))
-            if c == 10:
-               protocol(line)
-               del line
+        bytesToRead = ser.inWaiting()
+        if bytesToRead:
+            recv = ser.read(bytesToRead).decode('utf-8')
+            protocol(recv)
 
 def writeThread(ser, exitThread):
     on_state = False
     start = time.time()
     command = ""
+    camera_detect = ""
+    audio_detect = ""
+    pir_detect = ""
     while not exitThread:
-        camera_detect = os.popen('cat /sys/class/gpio/gpio111/value').read()
-        audio_detect = os.popen('cat /sys/class/gpio/gpio112/value').read()
-        pir_detect = os.popen('cat /sys/class/gpio/gpio113/value').read()
+        camera_detect = subprocess.getoutput('cat /sys/class/gpio/gpio111/value')
+        audio_detect = subprocess.getoutput('cat /sys/class/gpio/gpio112/value')
+        pir_detect = subprocess.getoutput('cat /sys/class/gpio/gpio113/value')
         if camera_detect == "1" or audio_detect == "1" or pir_detect == "1" or lora_detect == "1":
             if camera_detect:
+                log.info("camera detect")
                 command = "CAMERA:LIGHTON"
                 os.system("echo 0 > /sys/class/gpio/gpio111/value")
             elif audio_detect:
+                log.info("audio detect")
                 command = "AUDIO:LIGHTON"
                 os.system('echo 0 > /sys/class/gpio/gpio112/value')
             elif pir_detect:
+                log.info("pir detect")
                 command = "PIR:LIGHTON"
                 os.system('echo 0 > /sys/class/gpio/gpio113/value')
-            if not command :
-                ser.write(bytes(("AT+DATA={0}:{1}:\r\n").format(eui, command),'ascii'))
-                log.info("{0} command send to {1}".format(command, eui))
+            os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(main_gpio))
+            if command:
+                log.info("{0} command send to {1}".format(command, eui_data))
+                ser.write(bytes(("AT+DATA={0}:{1}:\r\n").format(eui_data, command),'ascii'))
                 command = ""
             on_state = True
-            os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(main_gpio))
             start = time.time()
         else :
             if on_state:
@@ -98,7 +103,7 @@ def writeThread(ser, exitThread):
 
 if __name__ == "__main__":
     global ontime
-    ontime = 30
+    ontime = 10
     #종료 시그널 등록
     signal.signal(signal.SIGINT, handler)
     #시리얼 열기
