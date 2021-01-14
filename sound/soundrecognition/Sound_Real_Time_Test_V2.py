@@ -209,7 +209,7 @@ def on_predicted():
             else :
                 print("{}    {}".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Object'))
                 flag = 1
-                os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
+                system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                 
         
         if (DEBUG):
@@ -230,11 +230,11 @@ def on_predicted():
                         # print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
                         print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Object', round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
                         flag = 1
-                        os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
+                        system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                     else :
                         print("{}    {}".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Object'))
                         flag = 1
-                        os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
+                        system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                 else :
                     if (current_index == 0) :
                         # print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
@@ -279,11 +279,11 @@ def on_predicted():
                             # print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
                             print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Object', round(100 * np.max(predictions[i + 1])/np.sum(predictions[i + 1]),2)))
                             flag = 1
-                            os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
+                            system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                         else :
                             print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Object', round(100 * np.max(predictions[i + 1])/np.sum(predictions[i + 1]),2)))
                             flag = 1
-                            os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
+                            system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                     else :
                         if (current_index == 0) :
                             # print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
