@@ -4,7 +4,6 @@ import signal
 import threading
 import os
 from haversine import haversine
-from detect import detectThread
 import logging
 import queue
 import subprocess
@@ -74,23 +73,22 @@ def writeThread(ser, exitThread):
         audio_detect = subprocess.getoutput('cat /sys/class/gpio/gpio112/value')
         pir_detect = subprocess.getoutput('cat /sys/class/gpio/gpio113/value')
         if camera_detect == "1" or audio_detect == "1" or pir_detect == "1" or lora_detect == "1":
-            if camera_detect:
+            if camera_detect == "1":
                 log.info("camera detect")
                 command = "CAMERA:LIGHTON"
                 os.system("echo 0 > /sys/class/gpio/gpio111/value")
-            elif audio_detect:
+            if audio_detect == "1":
                 log.info("audio detect")
                 command = "AUDIO:LIGHTON"
                 os.system('echo 0 > /sys/class/gpio/gpio112/value')
-            elif pir_detect:
+            if pir_detect == "1":
                 log.info("pir detect")
                 command = "PIR:LIGHTON"
                 os.system('echo 0 > /sys/class/gpio/gpio113/value')
             os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(main_gpio))
-            if command:
-                log.info("{0} command send to {1}".format(command, eui_data))
-                ser.write(bytes(("AT+DATA={0}:{1}:\r\n").format(eui_data, command),'ascii'))
-                command = ""
+            log.info("{0} command send to {1}".format(command, eui_data))
+            ser.write(bytes(("AT+DATA={0}:{1}:LIGHTON:\r\n").format(eui_data, command),'ascii'))
+            command = ""
             on_state = True
             start = time.time()
         else :
@@ -110,9 +108,7 @@ if __name__ == "__main__":
     ser = serial.Serial(port, baud, timeout=0)
     #시리얼 읽을 쓰레드 생성
     read_t = threading.Thread(target=readThread, args=(ser,exitThread))
-    camera_t = threading.Thread(target=detectThread, args=(ontime,exitThread))
     write_t = threading.Thread(target=writeThread, args=(ser,exitThread))
     #시작!
     read_t.start()
-    camera_t.start()
     write_t.start()

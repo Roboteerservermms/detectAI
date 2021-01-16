@@ -39,7 +39,7 @@ def ious(box1):
   return inner_iou
 
 
-def detectThread(ontime, exitThread):
+def detectThread(exitThread):
     global accumulate, on_state, num_gpio, threshold
 
     num_gpio = 111
@@ -159,3 +159,10 @@ def detectThread(ontime, exitThread):
             log.error('exit program')
             break
         t_cur_2 = int(round(time.time() * 1000))
+        
+if __name__ == '__main__':
+    global ontime
+    ontime = 10
+    exitThread = False
+    #종료 시그널 등록
+    detectThread(exitThread)

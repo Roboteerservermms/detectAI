@@ -191,7 +191,6 @@ int main(int argc, char* argv[]){
                                 }
                                 
                                 if(detected==0){
-                                    printf("Keep Detecting...\n");
                                 }
                                 else {
                                     printf("Human Is Detected\n");

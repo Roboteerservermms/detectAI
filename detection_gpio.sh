@@ -15,9 +15,11 @@ for gpio in "65" "111" "112" "113"; do
 done
 export PYTHONPATH="/home/orangepi/detectAI"
 cd $PYTHONPATH
-echo "compile pir!"
-g++ -o pir pir.cpp -std=c++11
-pir=$(./pir /dev/ttyS2)
-echo "load program!"
-python3 LoRa.py && $pir
+python3 detect.py & 
+echo "camera start!" &
+python3 LoRa.py & 
+echo "LoRa start!" &
+./pir /dev/ttyS2 &
+echo "pir start!"
+
 
