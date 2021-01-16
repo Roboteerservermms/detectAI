@@ -11,7 +11,7 @@ import pyaudio
 import pandas as pd
 import shutil
 from os import listdir
-from os import system
+import subprocess
 from os.path import isfile, join
 # import struct
 import queue
@@ -209,7 +209,7 @@ def on_predicted():
             else :
                 print("{}    {}".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Object'))
                 flag = 1
-                system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
+                subprocess.call('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                 
         
         if (DEBUG):
@@ -230,11 +230,11 @@ def on_predicted():
                         # print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
                         print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Object', round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
                         flag = 1
-                        system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
+                        subprocess.call('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                     else :
                         print("{}    {}".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Object'))
                         flag = 1
-                        system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
+                        subprocess.call('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                 else :
                     if (current_index == 0) :
                         # print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
@@ -279,11 +279,11 @@ def on_predicted():
                             # print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
                             print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Object', round(100 * np.max(predictions[i + 1])/np.sum(predictions[i + 1]),2)))
                             flag = 1
-                            system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
+                            subprocess.call('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                         else :
                             print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Object', round(100 * np.max(predictions[i + 1])/np.sum(predictions[i + 1]),2)))
                             flag = 1
-                            system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
+                            subprocess.call('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                     else :
                         if (current_index == 0) :
                             # print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
@@ -414,14 +414,14 @@ if __name__ == "__main__":
     # STEP_NUMBER_SAMPLES = 17640
     # PRED_TIMES = 5
     
-    # STEP_NUMBER_SAMPLES = 22050
-    # PRED_TIMES = 4
+    #STEP_NUMBER_SAMPLES = 22050
+    #PRED_TIMES = 4
     
     STEP_NUMBER_SAMPLES = 44100
     PRED_TIMES = 2
     
-    # STEP_NUMBER_SAMPLES = 88200
-    # PRED_TIMES = 1
+    #STEP_NUMBER_SAMPLES = 88200
+    #PRED_TIMES = 1
     
     '''
         ['Back_ground','Car_crash','Car_passing_by','Clapping','Crowd_clapping','Screaming']
