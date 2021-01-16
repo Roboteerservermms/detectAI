@@ -80,7 +80,6 @@ def detectThread(exitThread):
         def update_state(self, on=None, on_state=None):
             if on is not None and on_state is not None:
                 if on:
-                    os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                     if not on_state:
                         on_state = True
                         self.logger.info("Camera: light's on")
@@ -89,17 +88,11 @@ def detectThread(exitThread):
                 else:
                     if on_state:
                         on_state = False
-                        os.system('echo 0 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                         return on_state
     
     state = State(log)
     
     while not exitThread:
-        if on_state:
-            accumulate += t_cur_2 - t_cur_1
-        else:
-            accumulate = 0
-        t_cur_1 = int(round(time.time() * 1000))
         ret, frame = cap.read()
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         img = Image.fromarray(frame)
@@ -118,14 +111,10 @@ def detectThread(exitThread):
                         if detect == 1:
                             accumulate = 0
                             detect = 0
+                            os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                             on_state = state.update_state(on=True, on_state=on_state)
                     else:
                         curr_boxes.append(box)
-                elif accumulate >= ontime * 1000:
-                    on_state = state.update_state(on=False, on_state=on_state)
-        else:
-            if accumulate >= ontime * 1000:
-                on_state = state.update_state(on=False, on_state=on_state)
         # detection for moving vehicle
         store_boxes.append(np.expand_dims(np.array(curr_boxes), axis=0))
         curr_boxes = []
@@ -149,6 +138,7 @@ def detectThread(exitThread):
                     if detect == 1:
                       accumulate = 0
                       detect = 0
+                      os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                       on_state = state.update_state(on=True, on_state=on_state)
                     break
         
