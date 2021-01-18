@@ -13,12 +13,12 @@ import pyaudio
 import pandas as pd
 import shutil
 from os import listdir
-import subprocess
+from os import system
 from os.path import isfile, join
 # import struct
 import queue
 import array
-
+import logging
 from collections import deque
 
 #import tensorflow as tf
@@ -31,7 +31,10 @@ import datetime
 from time import strftime
 
 import argparse
-
+log = logging.getLogger('detect')
+log.setLevel(logging.DEBUG)
+log_handler = logging.StreamHandler()
+log.addHandler(log_handler)
 num_gpio = 112
 
 class Config(object):
@@ -58,7 +61,7 @@ def prepare_data_fileinput(file_path, config):
     X = np.empty(shape=(1, config.dim[0], config.dim[1], 1))
     input_length = config.audio_length
     
-    #print(file_path)
+    #log.info(file_path)
     data, _ = librosa.core.load(file_path, sr=config.sampling_rate, res_type="kaiser_fast")
     
     # Remove silence or noise or things like that
@@ -163,16 +166,16 @@ def test_files_one_by_one(file_path, class_name):
         X_test = prepare_data_fileinput(file_path + "\\" + name, config)
         test_prediction = model.predict(X_test, batch_size=2, verbose=0)
         top1_max = np.array(LABELS)[np.argsort(-test_prediction, axis=1)[:, :1]]
-        print("File_{} predicted {}".format(name, top1_max[0][0]))
+        log.info("File_{} predicted {}".format(name, top1_max[0][0]))
         if(top1_max[0][0] in class_name):
             n = n + 1
     
-    print("Success/Total: {}/{}".format(n, len(file_names)))
-    print("Accuracy %.2f %%" %(100 * n/len(file_names)))
-    print("Done testing files!")
+    log.info("Success/Total: {}/{}".format(n, len(file_names)))
+    log.info("Accuracy %.2f %%" %(100 * n/len(file_names)))
+    log.info("Done testing files!")
     
     t2 = time.time()
-    print('Run time:', t2 - t1, '(s)')
+    log.info('Run time:', t2 - t1, '(s)')
     
 def callback(in_data, frame_count, time_info, status):
     wave = array.array('h', in_data)
@@ -205,46 +208,46 @@ def on_predicted():
 
         if (current_index > -1):
             if (current_index == 0):
-                print("{}    {}".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Back_ground'))
+                log.info("{}    {}".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Back_ground'))
                 flag = 0
-                # print("{}    {}".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), LABELS[current_index]))
+                # log.info("{}    {}".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), LABELS[current_index]))
             else :
-                print("{}    {}".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Object'))
+                log.info("{}    {}".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Object'))
                 flag = 1
-                subprocess.call('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
+                system('echo 1 > /sys/class/gpio/gpio112/value')
                 
         
         if (DEBUG):
-            print("Current index: " + str(current_index))
+            log.info("Current index: " + str(current_index))
         
         if (current_index != label_indexes[0]):
             result = np.array(LABELS)[np.argsort(-predictions[0], axis=1)[:, :1]][0][0]
             
             if (result == 'Back_ground'):
-                print("-"*100)
-                print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
+                log.info("-"*100)
+                log.info("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
                 flag = 0
             else :
-                if (np.max(predictions[0])/np.sum(predictions[0]) > 0.8):
-                    # print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
+                if (np.max(predictions[0])/np.sum(predictions[0]) > threshold):
+                    # log.info("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
                     if (current_index == 0) :
-                        print("-"*100)
-                        # print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
-                        print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Object', round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
+                        log.info("-"*100)
+                        # log.info("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
+                        log.info("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Object', round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
                         flag = 1
-                        subprocess.call('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
+                        system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                     else :
-                        print("{}    {}".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Object'))
+                        log.info("{}    {}".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Object'))
                         flag = 1
-                        subprocess.call('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
+                        system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                 else :
                     if (current_index == 0) :
-                        # print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
-                        print("{}    {}".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Back_ground'))
+                        # log.info("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
+                        log.info("{}    {}".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Back_ground'))
                         flag = 0
                     else :
-                        print("-"*100)
-                        print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Back_ground', round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
+                        log.info("-"*100)
+                        log.info("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Back_ground', round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
                         flag = 0
             # result = LABELS[0]
             # if(label_indexes[0] == 1 or label_indexes[0] == 2):
@@ -253,47 +256,47 @@ def on_predicted():
             #     result = "Human"
             # elif(label_indexes[0] == 5):
             #     result = "Danger"
-            # print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
+            # log.info("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
     
             current_index = label_indexes[0]
             if (flag == 0):
                 current_index = 0
             if (DEBUG):
-                print("Updated index: " + str(current_index))
+                log.info("Updated index: " + str(current_index))
         
         number_of_results = len(label_indexes)
         for i in range(number_of_results):
             if (i + 1 < number_of_results and label_indexes[i + 1] != label_indexes[i]):
                 top1_max = np.array(LABELS)[np.argsort(-predictions[i + 1], axis=1)[:, :1]]
                 
-                # print("-"*100)
-                # print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), top1_max[0][0], round(100 * np.max(predictions[i + 1])/np.sum(predictions[i + 1]),2)))
+                # log.info("-"*100)
+                # log.info("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), top1_max[0][0], round(100 * np.max(predictions[i + 1])/np.sum(predictions[i + 1]),2)))
 
                 if (top1_max[0][0] == 'Back_ground'):
-                    print("-"*100)
-                    print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), top1_max[0][0], round(100 * np.max(predictions[i + 1])/np.sum(predictions[i + 1]),2)))
+                    log.info("-"*100)
+                    log.info("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), top1_max[0][0], round(100 * np.max(predictions[i + 1])/np.sum(predictions[i + 1]),2)))
                     flag = 0
                 else :
                     if (np.max(predictions[i + 1])/np.sum(predictions[i + 1]) > 0.8):
-                        # print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
+                        # log.info("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
                         if (current_index == 0) :
-                            print("-"*100)
-                            # print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
-                            print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Object', round(100 * np.max(predictions[i + 1])/np.sum(predictions[i + 1]),2)))
+                            log.info("-"*100)
+                            # log.info("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
+                            log.info("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Object', round(100 * np.max(predictions[i + 1])/np.sum(predictions[i + 1]),2)))
                             flag = 1
-                            subprocess.call('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
+                            system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                         else :
-                            print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Object', round(100 * np.max(predictions[i + 1])/np.sum(predictions[i + 1]),2)))
+                            log.info("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Object', round(100 * np.max(predictions[i + 1])/np.sum(predictions[i + 1]),2)))
                             flag = 1
-                            subprocess.call('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
+                            system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                     else :
                         if (current_index == 0) :
-                            # print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
-                            print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Back_ground', round(100 * np.max(predictions[i + 1])/np.sum(predictions[i + 1]),2)))
+                            # log.info("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
+                            log.info("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Back_ground', round(100 * np.max(predictions[i + 1])/np.sum(predictions[i + 1]),2)))
                             flag = 0
                         else :
-                            print("-"*100)
-                            print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Back_ground', round(100 * np.max(predictions[i + 1])/np.sum(predictions[i + 1]),2)))
+                            log.info("-"*100)
+                            log.info("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), 'Back_ground', round(100 * np.max(predictions[i + 1])/np.sum(predictions[i + 1]),2)))
                             flag = 0
                 # if(label_indexes[i + 1] == 1 or label_indexes[i + 1] == 2):
                 #     result = "Car"
@@ -301,13 +304,13 @@ def on_predicted():
                 #     result = "Human"
                 # elif(label_indexes[i + 1] == 5):
                 #     result = "Danger"
-                # print("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))   
+                # log.info("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))   
         
                 current_index = label_indexes[i + 1]
                 if (flag == 0) :
                     current_index = 0
                 if (DEBUG):
-                    print("Updated index: " + str(current_index))
+                    log.info("Updated index: " + str(current_index))
     
 def main_process(models, on_predicted):
     # Pool audio data
@@ -317,16 +320,16 @@ def main_process(models, on_predicted):
         if len(raw_audio_buffer) >= MAX_NUMBER_SAMPLES: break
     if len(raw_audio_buffer) < MAX_NUMBER_SAMPLES: return
     
-    # print("raw buffer: " + str(len(raw_audio_buffer)))
+    # log.info("raw buffer: " + str(len(raw_audio_buffer)))
     audio_to_convert = np.array(raw_audio_buffer[:MAX_NUMBER_SAMPLES]) / 32767
-    # print("audio_to_convert: " + str(len(audio_to_convert)))
-    # print(audio_to_convert)
+    # log.info("audio_to_convert: " + str(len(audio_to_convert)))
+    # log.info(audio_to_convert)
     
     if (DEBUG):
         audio_data_queue.append(raw_audio_buffer[:MAX_NUMBER_SAMPLES])
     
     raw_audio_buffer = raw_audio_buffer[STEP_NUMBER_SAMPLES:]
-    # print("raw buffer after convert: " + str(len(raw_audio_buffer)))
+    # log.info("raw buffer after convert: " + str(len(raw_audio_buffer)))
     
     X_test = prepare_data_streaminput(audio_to_convert, config)
     #test_prediction = models[0].predict(X_test, batch_size=1, verbose=0)
@@ -365,7 +368,7 @@ def run_predictor():
                 stream_callback=callback
             )
     
-    # print(audio.get_sample_size(FORMAT))
+    # log.info(audio.get_sample_size(FORMAT))
     # sample_width = audio.get_sample_size(FORMAT)
     
     # main loop
@@ -382,14 +385,14 @@ def run_predictor():
     
 
 if __name__ == "__main__":
-    DEBUG = True
+    DEBUG = False
     
     parser = argparse.ArgumentParser()
-    parser.add_argument('--threshold', type=float, default=0.8, help='Sound threshold')
+    parser.add_argument('--threshold', type=float, default=0.5, help='Sound threshold')
 
     args = parser.parse_args()
     threshold = args.threshold
-    print(threshold)
+    log.info(threshold)
 
     SAMPLES_PER_CHUNK = 4096
     FORMAT = pyaudio.paInt16
