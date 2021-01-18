@@ -80,7 +80,6 @@ def writeThread(ser, exitThread):
             if audio_detect == "1":
                 log.info("audio detect")
                 command = "AUDIO:LIGHTON"
-                os.system('echo 0 > /sys/class/gpio/gpio112/value')
             if pir_detect == "1":
                 log.info("pir detect")
                 command = "PIR:LIGHTON"
