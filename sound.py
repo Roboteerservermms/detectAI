@@ -195,15 +195,7 @@ def on_predicted():
     
         for pred in predictions:
             #label_index
-            label_indexes.append(np.argsort(-pred, axis=1)[:, :1][0][0])
-            if (DEBUG):
-                raw_audio_data = audio_data_queue.popleft()
-                k = k + 1
-                partial_file_name = np.array(LABELS)[np.argsort(-pred, axis=1)[:, :1]][0][0]
-                # partial_file_name = "Car_crash"
-                fpath = WAVE_OUTPUT_FILENAME + "_" + partial_file_name + "_" + str(k) + ".wav"
-                wavfile.write(fpath, RATE, np.array(raw_audio_data).astype('int16'))
-        
+            label_indexes.append(np.argsort(-pred, axis=1)[:, :1][0][0])        
         current_datetime = datetime.datetime.now()
 
         if (current_index > -1):
@@ -277,7 +269,7 @@ def on_predicted():
                     log.info("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), top1_max[0][0], round(100 * np.max(predictions[i + 1])/np.sum(predictions[i + 1]),2)))
                     flag = 0
                 else :
-                    if (np.max(predictions[i + 1])/np.sum(predictions[i + 1]) > 0.8):
+                    if (np.max(predictions[i + 1])/np.sum(predictions[i + 1]) > threshold):
                         # log.info("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))
                         if (current_index == 0) :
                             log.info("-"*100)
