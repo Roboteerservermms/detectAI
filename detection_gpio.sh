@@ -20,6 +20,8 @@ echo "camera start!" &
 python3 LoRa.py & 
 echo "LoRa start!" &
 ./pir /dev/ttyS2 &
-echo "pir start!"
+echo "pir start!" &
+python3.7 sound.py &
+echo "sound start!"
 
 

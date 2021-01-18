@@ -5,6 +5,8 @@ Content: patially reuse code from ml-sound-classifier-master\..\realtime_predict
 @author: magicalme
 """
 import scipy
+from scipy import io
+from scipy.io import wavfile
 import numpy as np
 import librosa
 import pyaudio
@@ -197,7 +199,7 @@ def on_predicted():
                 partial_file_name = np.array(LABELS)[np.argsort(-pred, axis=1)[:, :1]][0][0]
                 # partial_file_name = "Car_crash"
                 fpath = WAVE_OUTPUT_FILENAME + "_" + partial_file_name + "_" + str(k) + ".wav"
-                scipy.io.wavfile.write(fpath, RATE, np.array(raw_audio_data).astype('int16'))
+                wavfile.write(fpath, RATE, np.array(raw_audio_data).astype('int16'))
         
         current_datetime = datetime.datetime.now()
 
@@ -380,7 +382,7 @@ def run_predictor():
     
 
 if __name__ == "__main__":
-    DEBUG = False
+    DEBUG = True
     
     parser = argparse.ArgumentParser()
     parser.add_argument('--threshold', type=float, default=0.8, help='Sound threshold')
