@@ -88,8 +88,7 @@ def writeThread(ser, exitThread):
                 log.info("pir detect")
                 command = "PIR:LIGHTON"
                 os.system('echo 0 > /sys/class/gpio/gpio113/value')
-            os.system('echo 1 > /sys/class/gpio/gpio65/value')
-            os.system('echo 1 > /sys/class/gpio/gpio74/value')
+            os.system('echo 1 > /sys/class/gpio/gpio65/value & echo 1 > /sys/class/gpio/gpio74/value')
             log.info("{0} command send to {1}".format(command, eui_data))
             ser.write(bytes(("AT+DATA={0}:{1}:\r\n").format(eui_data, command),'ascii'))
             ser.flush()
@@ -100,8 +99,7 @@ def writeThread(ser, exitThread):
             if on_state:
             	t = time.time() - start
             	if t >= ontime:
-            	    os.system('echo 0 > /sys/class/gpio/gpio65/value')
-            	    os.system('echo 0 > /sys/class/gpio/gpio74/value')
+            	    os.system('echo 0 > /sys/class/gpio/gpio65/value & echo 0 > /sys/class/gpio/gpio74/value')
                 	log.info("light off")
                 	on_state = False
 
