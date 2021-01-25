@@ -91,7 +91,7 @@ def detectThread(exitThread):
                         return on_state
     
     state = State(log)
-    
+    count = 0
     while not exitThread:
         ret, frame = cap.read()
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -113,6 +113,7 @@ def detectThread(exitThread):
                             detect = 0
                             os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                             on_state = state.update_state(on=True, on_state=on_state)
+                            img.save('{}.bmp'.format(count), 'BMP')
                     else:
                         curr_boxes.append(box)
         # detection for moving vehicle
