@@ -61,6 +61,7 @@ def detectThread(exitThread):
     accumulate = 0
     on_state = False
     detect = 0
+    frames = 0
     
     # detection for moving vehicle
     store_boxes = [] # past boxes for calculating IOU
@@ -68,9 +69,6 @@ def detectThread(exitThread):
     num_store = 4
     ret_ious = [0] * num_store # ious between (current-2 and current), (current-1 and current) frames
     moving_threshold = [0.5, 0.80]
-    
-    t_cur_1 = int(round(time.time()))
-    t_cur_2 = int(round(time.time()))
     
     class State(object):
     
@@ -96,16 +94,20 @@ def detectThread(exitThread):
         ret, frame = cap.read()
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         img = Image.fromarray(frame)
-        fontsize = 10
+        fontsize = 20
         font = ImageFont.truetype('Ubuntu-L.ttf', fontsize)
         draw = ImageDraw.Draw(img)
+        time_start = time.time()*1000
         ans = engine.detect_with_image(img, threshold=threshold, keep_aspect_ratio=True, relative_coord=False, top_k=10)
+        draw.text(xy=(30, 10), text='frame: {}'.format(frames), font=ImageFont.truetype('Ubuntu-L.ttf', 20), fill=(255,255,0))
+        frames += 1
         if ans:
             detect = 1
             for obj in ans:
                 if obj.label_id in labelids:
                     box = obj.bounding_box.flatten().tolist()
                     draw.text(xy=(box[0], box[1] - (fontsize + 1)), text=(labels[obj.label_id]), font=font)
+                    draw.text(xy=(box[0], box[1] - (fontsize + 1) * 2), text="{}ms".format(int(time.time()*1000 - time_start)), font=font)
                     draw.rectangle(box, outline='yellow')
                     if obj.label_id == 0:
                         if detect == 1:
@@ -148,7 +150,6 @@ def detectThread(exitThread):
         if cv2.waitKey(1) == 27:
             log.error('exit program')
             break
-        t_cur_2 = int(round(time.time() * 1000))
         
 if __name__ == '__main__':
     global ontime
