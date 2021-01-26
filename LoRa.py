@@ -99,9 +99,9 @@ def writeThread(ser, exitThread):
             if on_state:
             	t = time.time() - start
             	if t >= ontime:
-            	    os.system('echo 0 > /sys/class/gpio/gpio65/value & echo 0 > /sys/class/gpio/gpio74/value')
-                	log.info("light off")
-                	on_state = False
+                    log.info("light off")
+                    on_state = False
+                    os.system('echo 0 > /sys/class/gpio/gpio65/value & echo 0 > /sys/class/gpio/gpio74/value')
 
 if __name__ == "__main__":
     global ontime

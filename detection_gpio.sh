@@ -30,8 +30,7 @@ cd $PYTHONPATH
 python3 detect.py & 
 echo "camera start!" &
 python3 LoRa.py & 
-echo "LoRa start!" &
-./pir /dev/ttyS2 &
-echo "pir start!"
+echo "LoRa start!" 
+
 
 
