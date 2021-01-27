@@ -27,6 +27,7 @@ echo "in" > /sys/class/gpio/gpio${audio_gpio}/direction
 
 export PYTHONPATH="/home/orangepi/detectAI"
 cd $PYTHONPATH
+g++ -o pir pir.cpp -std=c++11
 python3 detect.py & 
 echo "camera start!" &
 python3 LoRa.py & 
