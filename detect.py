@@ -62,6 +62,9 @@ def detectThread(exitThread):
     on_state = False
     detect = 0
     frames = 0
+    path = "./snapshot/"
+
+    os.makedirs(path, exist_ok=True)
     
     # detection for moving vehicle
     store_boxes = [] # past boxes for calculating IOU
@@ -89,7 +92,7 @@ def detectThread(exitThread):
                         return on_state
     
     state = State(log)
-    
+    count = 0
     while not exitThread:
         ret, frame = cap.read()
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -113,8 +116,15 @@ def detectThread(exitThread):
                         if detect == 1:
                             accumulate = 0
                             detect = 0
+                            count += 1
                             os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                             on_state = state.update_state(on=True, on_state=on_state)
+                            if count < 100:
+                                img.save('{0}{1}.bmp'.format(path, count), 'BMP')
+                            else:
+                                count = 0
+                                os.rmdir(path)
+                                os.mkdir(path)
                     else:
                         curr_boxes.append(box)
         # detection for moving vehicle
