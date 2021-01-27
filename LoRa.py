@@ -29,6 +29,17 @@ log.setLevel(logging.DEBUG)
 log_handler = logging.StreamHandler()
 log.addHandler(log_handler)
 
+def findeui(ser):
+    ser.write(bytes(("AT+GEUI\r\n"),'ascii'))
+    ser.flush()
+    bytesToRead = ser.inWaiting()
+    if bytesToRead:
+        for c in ser.read():
+            line.append(chr(c))
+            if c == 10:            
+                rx_data = ''.join(line)
+                del line[:]
+    
 def protocol(recv):
     tmp = ''.join(recv)
     if "RECV" in tmp: ## 어떤 데이터를 받게 되며
@@ -36,7 +47,7 @@ def protocol(recv):
             recv_eui = tmp.split(":")[1]
             p = tmp.split(":")[3]
             log.info("protocol is {}".format(p))
-            if p == "CAMERA" |  p == "AUDIO" | p == "PIR": ## 센서 감지 프로토콜
+            if p == "CAMERA" or  p == "AUDIO" or p == "PIR": ## 센서 감지 프로토콜
                 recvdata = tmp.split(":")[4]
                 log.info("LoRa: receving data {0} from {1}".format(recvdata, recv_eui))
                 if recvdata == "LIGHTON":
