@@ -16,12 +16,9 @@ done
 
 export PYTHONPATH="/home/orangepi/detectAI"
 cd $PYTHONPATH
-g++ -o pir pir.cpp -std=c++11
 python3 detect.py & 
 echo "camera start!" &
 python3 LoRa.py & 
 echo "LoRa start!" &
-./pir /dev/ttyS2 &
-echo "pir start!"
 
 
