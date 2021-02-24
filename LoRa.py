@@ -116,7 +116,7 @@ def writeThread(ser, exitThread):
 
 if __name__ == "__main__":
     global ontime
-    ontime = 5
+    ontime = 30
     #종료 시그널 등록
     signal.signal(signal.SIGINT, handler)
     #시리얼 열기
