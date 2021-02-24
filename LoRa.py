@@ -8,10 +8,7 @@ from haversine import haversine
 import logging
 import queue
 import subprocess
-import csv
-import pandas as pd
-import pygame
-
+from playsound import playsound
 
 line = [] #라인 단위로 데이터 가져올 리스트 변수
 port = '/dev/ttyS3' # 시리얼 포트
@@ -78,9 +75,6 @@ def writeThread(ser, exitThread):
     camera_detect = ""
     audio_detect = ""
     pir_detect = ""
-    pygame.init()
-    pygame.mixer.init()
-    pygame.mixer.music.load("teemo.mp3")
     while not exitThread:
         camera_detect = subprocess.getoutput('cat /sys/class/gpio/gpio111/value')
         audio_detect = subprocess.getoutput('cat /sys/class/gpio/gpio112/value')
@@ -97,14 +91,14 @@ def writeThread(ser, exitThread):
                 log.info("pir detect")
                 command = "PIR:LIGHTON"
                 os.system('echo 0 > /sys/class/gpio/gpio113/value')
-            os.system('echo 1 > /sys/class/gpio/gpio65/value & echo 0 > /sys/class/gpio/gpio74/value')
+            os.system('echo 1 > /sys/class/gpio/gpio65/value & echo 1 > /sys/class/gpio/gpio74/value')
             log.info("{0} command send to {1}".format(command, eui_data))
             ser.write(bytes(("AT+DATA={0}:{1}:\r\n").format(eui_data, command),'ascii'))
             ser.flush()
             command = ""
             on_state = True
             start = time.time()
-            pygame.mixer.music.play()
+            playsound("teemo.mp3")
         else :
             if on_state:
             	t = time.time() - start
@@ -121,9 +115,7 @@ if __name__ == "__main__":
     #시리얼 열기
     ser = serial.Serial(port, baud, timeout=0)
     #시리얼 읽을 쓰레드 생성
-    log.info("LoRa & gpio handler is running!")
     read_t = threading.Thread(target=readThread, args=(ser,exitThread))
     write_t = threading.Thread(target=writeThread, args=(ser,exitThread))
     #시작!
-    read_t.start()
     write_t.start()
