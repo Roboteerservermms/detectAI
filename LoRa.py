@@ -104,10 +104,14 @@ def writeThread(ser, exitThread):
         else :
             if on_state:
             	t = time.time() - start
+                ret, frame = cap.read()
+                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                cv2.imshow('video', frame)
             	if t >= ontime:
                     log.info("light off")
                     on_state = False
                     os.system('echo 0 > /sys/class/gpio/gpio65/value & echo 1 > /sys/class/gpio/gpio74/value')
+
 
 if __name__ == "__main__":
     global ontime
