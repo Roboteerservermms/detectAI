@@ -9,6 +9,7 @@ import logging
 import queue
 import subprocess
 from playsound import playsound
+import cv2
 
 line = [] #라인 단위로 데이터 가져올 리스트 변수
 port = '/dev/ttyS3' # 시리얼 포트
@@ -75,6 +76,7 @@ def writeThread(ser, exitThread):
     camera_detect = ""
     audio_detect = ""
     pir_detect = ""
+    cap = cv2.VideoCapture("video.mp4")
     while not exitThread:
         camera_detect = subprocess.getoutput('cat /sys/class/gpio/gpio111/value')
         audio_detect = subprocess.getoutput('cat /sys/class/gpio/gpio112/value')
