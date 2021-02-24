@@ -9,7 +9,7 @@ import logging
 import queue
 import subprocess
 from playsound import playsound
-import cv2
+import vlc
 
 line = [] #라인 단위로 데이터 가져올 리스트 변수
 port = '/dev/ttyS3' # 시리얼 포트
@@ -68,7 +68,17 @@ def readThread(ser, exitThread):
                 if c == 10:            
                     protocol(line)
                     del line[:]
-                    
+
+def setup_player(filename):
+    vlc_instance = vlc.Instance('--fullscreen')
+    player = vlc_instance.media_player_new()
+    media = vlc_instance.media_new(filename)
+    player.set_media(media)
+    print media.get_mrl() # File location to get title 
+    print player.get_length() #Time duration of file -1 means there is no   media
+    print player.get_state() #Player's state
+    player.play()   
+
 def writeThread(ser, exitThread):
     on_state = False
     start = time.time()
@@ -104,9 +114,7 @@ def writeThread(ser, exitThread):
         else :
             if on_state:
             	t = time.time() - start
-                ret, frame = cap.read()
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                cv2.imshow('video', frame)
+                setup_player("video.mp4")
             	if t >= ontime:
                     log.info("light off")
                     on_state = False
