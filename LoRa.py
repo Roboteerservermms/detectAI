@@ -8,6 +8,10 @@ from haversine import haversine
 import logging
 import queue
 import subprocess
+import csv
+import pandas as pd
+import pygame
+
 
 line = [] #라인 단위로 데이터 가져올 리스트 변수
 port = '/dev/ttyS3' # 시리얼 포트
@@ -74,6 +78,9 @@ def writeThread(ser, exitThread):
     camera_detect = ""
     audio_detect = ""
     pir_detect = ""
+    pygame.init()
+    pygame.mixer.init()
+    pygame.mixer.music.load("teemo.mp3")
     while not exitThread:
         camera_detect = subprocess.getoutput('cat /sys/class/gpio/gpio111/value')
         audio_detect = subprocess.getoutput('cat /sys/class/gpio/gpio112/value')
@@ -97,6 +104,7 @@ def writeThread(ser, exitThread):
             command = ""
             on_state = True
             start = time.time()
+            pygame.mixer.music.play()
         else :
             if on_state:
             	t = time.time() - start
