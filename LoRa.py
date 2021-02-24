@@ -1,3 +1,4 @@
+from typing import Iterator
 import serial
 import time
 import signal
@@ -7,9 +8,12 @@ from haversine import haversine
 import logging
 import queue
 import subprocess
+import csv
+import pandas as pd
+import pygame
+
 
 line = [] #라인 단위로 데이터 가져올 리스트 변수
-
 port = '/dev/ttyS3' # 시리얼 포트
 baud = 115200 # 시리얼 보드레이트(통신속도)
 main_gpio = 65
@@ -20,8 +24,8 @@ pir_gpio = 113
 exitThread = False   # 쓰레드 종료용 변수
 start = (0,0)
 distance = None
-eui_data = "1f9f0c"
-
+start_eui = 0x1f9eb7
+end_eui = 0x1f9f10
 start_latitude, start_longitude = 37.540166, 127.056670
 lora_detect = False
 log = logging.getLogger('detect')
@@ -30,6 +34,9 @@ log_handler = logging.StreamHandler()
 log.addHandler(log_handler)
 
 def findeui(ser):
+    global myeui
+    myeui = 0x0
+    streui = ""
     ser.write(bytes(("AT+GEUI\r\n"),'ascii'))
     ser.flush()
     bytesToRead = ser.inWaiting()
@@ -37,10 +44,17 @@ def findeui(ser):
         for c in ser.read():
             line.append(chr(c))
             if c == 10:            
-                rx_data = ''.join(line)
+                streui = ''.join(line)
                 del line[:]
+        myeui = hex(streui)
+
+def eui_table_handler():
+    data = pd.read_csv("eui_table.csv",sep=",")
+    fn = 'eui_table.csv'
+    eui_data = pd.read_csv('eui_table.csv', sep=',')  
     
 def protocol(recv):
+    global lora_detect
     tmp = ''.join(recv)
     if "RECV" in tmp: ## 어떤 데이터를 받게 되며
         if tmp.count(':') > 4:
@@ -83,6 +97,9 @@ def writeThread(ser, exitThread):
     camera_detect = ""
     audio_detect = ""
     pir_detect = ""
+    pygame.init()
+    pygame.mixer.init()
+    pygame.mixer.music.load("teemo.mp3")
     while not exitThread:
         camera_detect = subprocess.getoutput('cat /sys/class/gpio/gpio111/value')
         audio_detect = subprocess.getoutput('cat /sys/class/gpio/gpio112/value')
@@ -106,6 +123,7 @@ def writeThread(ser, exitThread):
             command = ""
             on_state = True
             start = time.time()
+            pygame.mixer.music.play()
         else :
             if on_state:
             	t = time.time() - start
