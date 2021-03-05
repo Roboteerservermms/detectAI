@@ -125,9 +125,7 @@ def detectThread(exitThread):
                             file_name = '{0}{1}.bmp'.format(path, count)
                             if file_name == subprocess.check_output("ls | grep {}".format(file_name)):
                                 os.system("rm -rf {}".format(path))
-                                os.mkdir(path)
-                            else:
-                                img.save(file_name, 'BMP')
+                            img.save(file_name, 'BMP')
                     else:
                         curr_boxes.append(box)
         # detection for moving vehicle
