@@ -116,15 +116,18 @@ def detectThread(exitThread):
                         if detect == 1:
                             accumulate = 0
                             detect = 0
-                            count += 1
+                            if count < 100:
+                                count += 1
+                            else : 
+                                count = 0
                             os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                             on_state = state.update_state(on=True, on_state=on_state)
-                            if count < 100:
-                                img.save('{0}{1}.bmp'.format(path, count), 'BMP')
-                            else:
-                                count = 0
-                                os.rmdir(path)
+                            file_name = '{0}{1}.bmp'.format(path, count)
+                            if file_name == subprocess.check_output("ls | grep {}".format(file_name)):
+                                os.system("rm -rf {}".format(path))
                                 os.mkdir(path)
+                            else:
+                                img.save(file_name, 'BMP')
                     else:
                         curr_boxes.append(box)
         # detection for moving vehicle
