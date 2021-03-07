@@ -63,8 +63,6 @@ def detectThread(exitThread):
     detect = 0
     frames = 0
     path = "./snapshot/"
-
-    os.makedirs(path, exist_ok=True)
     
     # detection for moving vehicle
     store_boxes = [] # past boxes for calculating IOU
