@@ -121,7 +121,7 @@ def detectThread(exitThread):
                             os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                             on_state = state.update_state(on=True, on_state=on_state)
                             file_name = '{0}{1}.bmp'.format(path, count)
-                            if file_name == subprocess.check_output("ls | grep {}".format(file_name)):
+                            if file_name == subprocess.getoutput("ls | grep {}".format(file_name)):
                                 os.system("rm -rf {}".format(path))
                             img.save(file_name, 'BMP')
                     else:
