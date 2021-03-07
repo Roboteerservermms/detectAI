@@ -8,10 +8,6 @@ from haversine import haversine
 import logging
 import queue
 import subprocess
-import csv
-import pandas as pd
-import pygame
-
 
 line = [] #라인 단위로 데이터 가져올 리스트 변수
 port = '/dev/ttyS3' # 시리얼 포트
@@ -32,26 +28,7 @@ log = logging.getLogger('detect')
 log.setLevel(logging.DEBUG)
 log_handler = logging.StreamHandler()
 log.addHandler(log_handler)
-
-def findeui(ser):
-    global myeui
-    myeui = 0x0
-    streui = ""
-    ser.write(bytes(("AT+GEUI\r\n"),'ascii'))
-    ser.flush()
-    bytesToRead = ser.inWaiting()
-    if bytesToRead:
-        for c in ser.read():
-            line.append(chr(c))
-            if c == 10:            
-                streui = ''.join(line)
-                del line[:]
-        myeui = hex(streui)
-
-def eui_table_handler():
-    data = pd.read_csv("eui_table.csv",sep=",")
-    fn = 'eui_table.csv'
-    eui_data = pd.read_csv('eui_table.csv', sep=',')  
+ 
     
 def protocol(recv):
     global lora_detect
@@ -97,9 +74,6 @@ def writeThread(ser, exitThread):
     camera_detect = ""
     audio_detect = ""
     pir_detect = ""
-    pygame.init()
-    pygame.mixer.init()
-    pygame.mixer.music.load("teemo.mp3")
     while not exitThread:
         camera_detect = subprocess.getoutput('cat /sys/class/gpio/gpio111/value')
         audio_detect = subprocess.getoutput('cat /sys/class/gpio/gpio112/value')
@@ -123,7 +97,6 @@ def writeThread(ser, exitThread):
             command = ""
             on_state = True
             start = time.time()
-            pygame.mixer.music.play()
         else :
             if on_state:
             	t = time.time() - start
