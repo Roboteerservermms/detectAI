@@ -28,7 +28,7 @@ log = logging.getLogger('detect')
 log.setLevel(logging.DEBUG)
 log_handler = logging.StreamHandler()
 log.addHandler(log_handler)
- 
+eui_data=0x1f9eb7
     
 def protocol(recv):
     global lora_detect
@@ -107,12 +107,13 @@ def writeThread(ser, exitThread):
 
 if __name__ == "__main__":
     global ontime
-    ontime = 30
+    ontime = 5
     #종료 시그널 등록
     signal.signal(signal.SIGINT, handler)
     #시리얼 열기
     ser = serial.Serial(port, baud, timeout=0)
     #시리얼 읽을 쓰레드 생성
+    log.info("LoRa & gpio handler is running!")
     read_t = threading.Thread(target=readThread, args=(ser,exitThread))
     write_t = threading.Thread(target=writeThread, args=(ser,exitThread))
     #시작!
