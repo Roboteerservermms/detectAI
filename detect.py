@@ -92,7 +92,7 @@ def detectThread(exitThread):
                         return on_state
         def save_img_file(self, img=None):
             disk_usage=math.ceil(float(subprocess.getoutput("bash check_disk_percent.sh")))
-            now=subprocess.getoutput('date "+DATE: %m/%d/%y%nTIME: %H:%M:%S"')
+            now=subprocess.getoutput('date "+%y년%m시%d분%H:%M:%S"')
             img_file_name = '{0}{1}-{2}.bmp'.format(path, self.count,now)
             if img_file_name == subprocess.getoutput("ls | grep {0}{1}".format(path,self.count)):
                 if disk_usage < 97:
