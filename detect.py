@@ -126,6 +126,7 @@ def detectThread(exitThread):
                                 os.system("rm -rf {0}{1}".format(old_file_name))
                             else : 
                                 img.save(img_file_name, 'BMP')
+                            subprocess.getoutput("sync")
                     else:
                         curr_boxes.append(box)
 
