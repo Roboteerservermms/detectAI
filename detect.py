@@ -90,16 +90,6 @@ def detectThread(exitThread):
                         on_state = False
                         return on_state
 
-        def save_img_file(self, img=None):
-            disk_usage=math.ceil(float(subprocess.getoutput("bash check_disk_percent.sh")))
-            now=subprocess.getoutput('date "+%y-%m-%d_%H:%M:%S"')
-            img_file_name = '{0}{1}.bmp'.format(img_file_path,now)
-            if disk_usage < 97:
-                self.save_img_file()
-            else : 
-                old_file_name=subprocess.getoutput("ls -tr {}| head -n 1".format(img_file_path))
-                os.system("rm -rf {0}{1}".format(old_file_name))
-                img.save(img_file_name, 'BMP')
     
     state = State(log)
     count = 0
@@ -128,7 +118,15 @@ def detectThread(exitThread):
                             detect = 0
                             os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                             on_state = state.update_state(on=True, on_state=on_state)
-                            state.save_img_file(img=img)
+                            disk_usage=math.ceil(float(subprocess.getoutput("bash check_disk_percent.sh")))
+                            now=subprocess.getoutput('date "+%y-%m-%d_%H:%M:%S"')
+                            img_file_name = '{0}{1}.bmp'.format(img_file_path,now)
+                            if disk_usage < 97:
+                                img.save(img_file_name, 'BMP')
+                            else : 
+                                old_file_name=subprocess.getoutput("ls -tr {}| head -n 1".format(img_file_path))
+                                os.system("rm -rf {0}{1}".format(old_file_name))
+                                img.save(img_file_name, 'BMP')
                     else:
                         curr_boxes.append(box)
 
@@ -155,11 +153,19 @@ def detectThread(exitThread):
                 if moving.any():
                     print("vehicle is moving")
                     if detect == 1:
-                      accumulate = 0
-                      detect = 0
-                      os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
-                      on_state = state.update_state(on=True, on_state=on_state)
-                      state.save_img_file(img=img)
+                        accumulate = 0
+                        detect = 0
+                        os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
+                        on_state = state.update_state(on=True, on_state=on_state)
+                        disk_usage=math.ceil(float(subprocess.getoutput("bash check_disk_percent.sh")))
+                        now=subprocess.getoutput('date "+%y-%m-%d_%H:%M:%S"')
+                        img_file_name = '{0}{1}.bmp'.format(img_file_path,now)
+                        if disk_usage < 97:
+                            img.save(img_file_name, 'BMP')
+                        else : 
+                            old_file_name=subprocess.getoutput("ls -tr {}| head -n 1".format(img_file_path))
+                            os.system("rm -rf {0}{1}".format(old_file_name))
+                            img.save(img_file_name, 'BMP')
                     break
         
         frame = np.array(img)
