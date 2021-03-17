@@ -121,11 +121,10 @@ def detectThread(exitThread):
                             disk_usage=math.ceil(float(subprocess.getoutput("bash check_disk_percent.sh")))
                             now=subprocess.getoutput('date "+%y-%m-%d_%H:%M:%S"')
                             img_file_name = '{0}{1}.bmp'.format(img_file_path,now)
-                            if disk_usage < 97:
-                                img.save(img_file_name, 'BMP')
-                            else : 
+                            if disk_usage > 97:
                                 old_file_name=subprocess.getoutput("ls -tr {}| head -n 1".format(img_file_path))
                                 os.system("rm -rf {0}{1}".format(old_file_name))
+                            else : 
                                 img.save(img_file_name, 'BMP')
                     else:
                         curr_boxes.append(box)
@@ -160,11 +159,10 @@ def detectThread(exitThread):
                         disk_usage=math.ceil(float(subprocess.getoutput("bash check_disk_percent.sh")))
                         now=subprocess.getoutput('date "+%y-%m-%d_%H:%M:%S"')
                         img_file_name = '{0}{1}.bmp'.format(img_file_path,now)
-                        if disk_usage < 97:
-                            img.save(img_file_name, 'BMP')
-                        else : 
+                        if disk_usage > 97:
                             old_file_name=subprocess.getoutput("ls -tr {}| head -n 1".format(img_file_path))
                             os.system("rm -rf {0}{1}".format(old_file_name))
+                        else : 
                             img.save(img_file_name, 'BMP')
                     break
         
