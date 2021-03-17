@@ -10,6 +10,7 @@ import cv2, numpy as np, time
 import sys
 import logging
 import os
+import math
 
 
 def ReadLabelFile(file_path):
@@ -89,11 +90,12 @@ def detectThread(exitThread):
                     if on_state:
                         on_state = False
                         return on_state
-        def save_img_file(self, img=""):
-            disk_usage=int(subprocess.getoutput("bash check_disk_percent.sh"))
-            img_file_name = '{0}{1}.bmp'.format(path, self.count)
-            if img_file_name == subprocess.getoutput("ls | grep {}".format(img_file_name)):
-                if disk_usage < 96:
+        def save_img_file(self, img=None):
+            disk_usage=math.ceil(float(subprocess.getoutput("bash check_disk_percent.sh")))
+            now=subprocess.getoutput('date "+DATE: %m/%d/%y%nTIME: %H:%M:%S"')
+            img_file_name = '{0}{1}-{2}.bmp'.format(path, self.count,now)
+            if img_file_name == subprocess.getoutput("ls | grep {0}{1}".format(path,self.count)):
+                if disk_usage < 97:
                     self.count += 1
                     self.save_img_file()
                 else : 
