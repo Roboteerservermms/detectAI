@@ -84,7 +84,6 @@ def detectThread(exitThread):
                         on_state = True
                         self.logger.info("Camera: light's on")
                         accumulate = 0
-                        os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                         return on_state
                 else:
                     if on_state:
@@ -133,6 +132,7 @@ def detectThread(exitThread):
                         if detect == 1:
                             accumulate = 0
                             detect = 0
+                            os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                             on_state = state.update_state(on=True, on_state=on_state)
                             state.save_img_file(img=img)
                     else:
