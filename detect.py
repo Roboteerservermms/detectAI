@@ -95,10 +95,8 @@ def detectThread(exitThread):
             now=subprocess.getoutput('date "+%y-%m-%d_%H:%M:%S"')
             img_file_name = '{0}{1}.bmp'.format(img_file_path,now)
             if disk_usage < 97:
-                self.count += 1
                 self.save_img_file()
             else : 
-                self.count = 0
                 old_file_name=subprocess.getoutput("ls -tr {}| head -n 1".format(img_file_path))
                 os.system("rm -rf {0}{1}".format(old_file_name))
                 img.save(img_file_name, 'BMP')
