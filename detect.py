@@ -99,13 +99,13 @@ def detectThread(exitThread):
                     self.count += 1
                     self.save_img_file()
                 else : 
-                    count = 0
+                    self.count = 0
                     os.system("rm -rf {}".format(path))
                     img.save(img_file_name, 'BMP')
                     return 0
             else:
                 img.save(img_file_name, 'BMP')
-                count += 1
+                self.count += 1
                 return 0
     
     state = State(log)
