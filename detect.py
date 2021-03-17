@@ -72,7 +72,7 @@ def detectThread(exitThread):
     moving_threshold = [0.5, 0.80]
     
     class State(object):
-    
+        count = 0
         def __init__(self, logger):
             self.logger = logger
         
@@ -83,11 +83,28 @@ def detectThread(exitThread):
                         on_state = True
                         self.logger.info("Camera: light's on")
                         accumulate = 0
+                        os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                         return on_state
                 else:
                     if on_state:
                         on_state = False
                         return on_state
+        def save_img_file(self, img=""):
+            disk_usage=int(subprocess.getoutput("bash check_disk_percent.sh"))
+            img_file_name = '{0}{1}.bmp'.format(path, self.count)
+            if img_file_name == subprocess.getoutput("ls | grep {}".format(img_file_name)):
+                if disk_usage < 96:
+                    self.count += 1
+                    self.save_img_file()
+                else : 
+                    count = 0
+                    os.system("rm -rf {}".format(path))
+                    img.save(img_file_name, 'BMP')
+                    return 0
+            else:
+                img.save(img_file_name, 'BMP')
+                count += 1
+                return 0
     
     state = State(log)
     count = 0
@@ -114,19 +131,13 @@ def detectThread(exitThread):
                         if detect == 1:
                             accumulate = 0
                             detect = 0
-                            disk_usage=float(subprocess.getoutput("./check_disk_percent.sh"))
-                            if disk_usage < 100:
-                                count += 1
-                            else : 
-                                count = 0
-                            os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                             on_state = state.update_state(on=True, on_state=on_state)
-                            img_file_name = '{0}{1}.bmp'.format(path, count)
-                            if img_file_name == subprocess.getoutput("ls | grep {}".format(img_file_name)):
-                                os.system("rm -rf {}".format(path))
-                            img.save(img_file_name, 'BMP')
+                            state.save_img_file(img=img)
                     else:
                         curr_boxes.append(box)
+
+
+
         # detection for moving vehicle
         store_boxes.append(np.expand_dims(np.array(curr_boxes), axis=0))
         curr_boxes = []
@@ -152,6 +163,7 @@ def detectThread(exitThread):
                       detect = 0
                       os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                       on_state = state.update_state(on=True, on_state=on_state)
+                      state.save_img_file(img=img)
                     break
         
         frame = np.array(img)
