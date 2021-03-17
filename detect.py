@@ -11,6 +11,7 @@ import sys
 import logging
 import os
 import math
+from pathlib import Path
 
 
 def ReadLabelFile(file_path):
@@ -63,7 +64,7 @@ def detectThread(exitThread):
     on_state = False
     detect = 0
     frames = 0
-    path = "./snapshot/"
+    img_file_path = "./snapshot/"
     
     # detection for moving vehicle
     store_boxes = [] # past boxes for calculating IOU
@@ -73,7 +74,6 @@ def detectThread(exitThread):
     moving_threshold = [0.5, 0.80]
     
     class State(object):
-        count = 0
         def __init__(self, logger):
             self.logger = logger
         
@@ -89,23 +89,19 @@ def detectThread(exitThread):
                     if on_state:
                         on_state = False
                         return on_state
+
         def save_img_file(self, img=None):
             disk_usage=math.ceil(float(subprocess.getoutput("bash check_disk_percent.sh")))
             now=subprocess.getoutput('date "+%y-%m-%d_%H:%M:%S"')
-            img_file_name = '{0}{1}-{2}.bmp'.format(path, self.count,now)
-            if img_file_name == subprocess.getoutput("ls | grep {0}{1}".format(path,self.count)):
-                if disk_usage < 97:
-                    self.count += 1
-                    self.save_img_file()
-                else : 
-                    self.count = 0
-                    os.system("rm -rf {}".format(path))
-                    img.save(img_file_name, 'BMP')
-                    return 0
-            else:
-                img.save(img_file_name, 'BMP')
+            img_file_name = '{0}{1}.bmp'.format(img_file_path,now)
+            if disk_usage < 97:
                 self.count += 1
-                return 0
+                self.save_img_file()
+            else : 
+                self.count = 0
+                old_file_name=subprocess.getoutput("ls -tr {}| head -n 1".format(img_file_path))
+                os.system("rm -rf {0}{1}".format(old_file_name))
+                img.save(img_file_name, 'BMP')
     
     state = State(log)
     count = 0
