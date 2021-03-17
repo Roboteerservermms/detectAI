@@ -10,6 +10,8 @@ import cv2, numpy as np, time
 import sys
 import logging
 import os
+import math
+from pathlib import Path
 
 
 def ReadLabelFile(file_path):
@@ -62,7 +64,7 @@ def detectThread(exitThread):
     on_state = False
     detect = 0
     frames = 0
-    path = "./snapshot/"
+    img_file_path = "./snapshot/"
     
     # detection for moving vehicle
     store_boxes = [] # past boxes for calculating IOU
@@ -72,7 +74,6 @@ def detectThread(exitThread):
     moving_threshold = [0.5, 0.80]
     
     class State(object):
-    
         def __init__(self, logger):
             self.logger = logger
         
@@ -88,6 +89,7 @@ def detectThread(exitThread):
                     if on_state:
                         on_state = False
                         return on_state
+
     
     state = State(log)
     count = 0
@@ -114,18 +116,21 @@ def detectThread(exitThread):
                         if detect == 1:
                             accumulate = 0
                             detect = 0
-                            if count < 100:
-                                count += 1
-                            else : 
-                                count = 0
                             os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                             on_state = state.update_state(on=True, on_state=on_state)
-                            file_name = '{0}{1}.bmp'.format(path, count)
-                            if file_name == subprocess.getoutput("ls | grep {}".format(file_name)):
-                                os.system("rm -rf {}".format(path))
-                            img.save(file_name, 'BMP')
+                            disk_usage=math.ceil(float(subprocess.getoutput("bash check_disk_percent.sh")))
+                            now=subprocess.getoutput('date "+%y-%m-%d_%H:%M:%S"')
+                            img_file_name = '{0}{1}.bmp'.format(img_file_path,now)
+                            if disk_usage > 97:
+                                old_file_name=subprocess.getoutput("ls -tr {}| head -n 1".format(img_file_path))
+                                os.system("rm -rf {0}{1}".format(old_file_name))
+                            else : 
+                                img.save(img_file_name, 'BMP')
                     else:
                         curr_boxes.append(box)
+
+
+
         # detection for moving vehicle
         store_boxes.append(np.expand_dims(np.array(curr_boxes), axis=0))
         curr_boxes = []
@@ -147,10 +152,18 @@ def detectThread(exitThread):
                 if moving.any():
                     print("vehicle is moving")
                     if detect == 1:
-                      accumulate = 0
-                      detect = 0
-                      os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
-                      on_state = state.update_state(on=True, on_state=on_state)
+                        accumulate = 0
+                        detect = 0
+                        os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
+                        on_state = state.update_state(on=True, on_state=on_state)
+                        disk_usage=math.ceil(float(subprocess.getoutput("bash check_disk_percent.sh")))
+                        now=subprocess.getoutput('date "+%y-%m-%d_%H:%M:%S"')
+                        img_file_name = '{0}{1}.bmp'.format(img_file_path,now)
+                        if disk_usage > 97:
+                            old_file_name=subprocess.getoutput("ls -tr {}| head -n 1".format(img_file_path))
+                            os.system("rm -rf {0}{1}".format(old_file_name))
+                        else : 
+                            img.save(img_file_name, 'BMP')
                     break
         
         frame = np.array(img)

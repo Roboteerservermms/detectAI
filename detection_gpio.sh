@@ -1,4 +1,5 @@
 #!/bin/bash
+timedatectl set-timezone Asia/Seoul
 chmod 775 /sys/class/gpio/export
 chmod 775 /sys/class/gpio/unexport
 echo "Start AI Detection!"
