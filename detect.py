@@ -114,7 +114,7 @@ def detectThread(exitThread):
                         if detect == 1:
                             accumulate = 0
                             detect = 0
-                            disk_usage=float(subprocess.getoutput("./chek_disk_percent.sh"))
+                            disk_usage=float(subprocess.getoutput("./check_disk_percent.sh"))
                             if disk_usage < 100:
                                 count += 1
                             else : 
