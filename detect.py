@@ -121,6 +121,11 @@ def detectThread(exitThread):
                             on_state = state.update_state(on=True, on_state=on_state)
                             now=subprocess.getoutput('date "+%y-%m-%d_%H_%M_%S"')
                             img_file_name = '{0}{1}.bmp'.format(img_file_path,now)
+                            if disk_usage > 81:
+                                old_file_name=subprocess.getoutput("ls -tr {}| head -n 1".format(img_file_path))
+                                subprocess.getoutput("rm -rf {0}{1}".format(old_file_name))
+                            else : 
+                                img.save(img_file_name, 'BMP')
                             subprocess.getoutput("sync")
                     else:
                         curr_boxes.append(box)
@@ -153,11 +158,11 @@ def detectThread(exitThread):
                         os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                         on_state = state.update_state(on=True, on_state=on_state)
                         disk_usage=math.ceil(float(subprocess.getoutput("bash check_disk_percent.sh")))
-                        now=subprocess.getoutput('date "+%y-%m-%d_%H_%M_%S"')
+                        now=subprocess.getoutput('date "+%y-%m-%d_%H:%M:%S"')
                         img_file_name = '{0}{1}.bmp'.format(img_file_path,now)
                         if disk_usage > 81:
                             old_file_name=subprocess.getoutput("ls -tr {}| head -n 1".format(img_file_path))
-                            os.system("rm -rf {0}{1}".format(old_file_name))
+                            subprocess.getoutput("rm -rf {0}{1}".format(old_file_name))
                         else : 
                             img.save(img_file_name, 'BMP')
                         subprocess.getoutput("sync")
@@ -169,13 +174,6 @@ def detectThread(exitThread):
         if cv2.waitKey(1) == 27:
             log.error('exit program')
             break
-        if disk_usage > 81:
-            old_file_name=subprocess.getoutput("ls -tr {}| head -n 1".format(img_file_path))
-            erase_ret = subprocess.getoutput("rm -rf {0}{1}".format(old_file_name))
-            if not erase_ret:
-                log.info('full disk. erasing {}'.format(old_file_name))
-        else : 
-            img.save(img_file_name, 'BMP')
         
 if __name__ == '__main__':
     global ontime
