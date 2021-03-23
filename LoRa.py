@@ -67,7 +67,7 @@ def readThread(ser, exitThread):
                     protocol(line)
                     del line[:]
                     
-def writeThread(exitThread):
+def writeThread(ser, exitThread):
     on_state = False
     start = time.time()
     command = ""
@@ -108,10 +108,12 @@ if __name__ == "__main__":
     ontime = 30
     #종료 시그널 등록
     signal.signal(signal.SIGINT, handler)
+    #시리얼 열기
+    ser = serial.Serial(port, baud, timeout=0)
     #시리얼 읽을 쓰레드 생성
     log.info("LoRa & gpio handler is running!")
     
-    write_t = threading.Thread(target=writeThread, args=(exitThread))
+    write_t = threading.Thread(target=writeThread, args=(ser,exitThread))
     #시작!
 
     write_t.start()
