@@ -21,7 +21,6 @@ python3 detect.py &
 echo "camera start!" &
 python3 LoRa.py & 
 echo "LoRa start!" &
-cd server/
 python3 app.py &
 echo "server start!"
 
