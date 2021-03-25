@@ -64,7 +64,7 @@ def detectThread(exitThread):
     on_state = False
     detect = 0
     frames = 0
-    img_file_path = "./snapshot/"
+    img_file_path = "./uploads/"
     
     # detection for moving vehicle
     store_boxes = [] # past boxes for calculating IOU

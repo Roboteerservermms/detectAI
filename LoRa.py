@@ -92,8 +92,6 @@ def writeThread(ser, exitThread):
                 os.system('echo 0 > /sys/class/gpio/gpio113/value')
             os.system('echo 1 > /sys/class/gpio/gpio65/value & echo 0 > /sys/class/gpio/gpio74/value')
             log.info("{0} command send to {1}".format(command, eui_data))
-            ser.write(bytes(("AT+DATA={0}:{1}:\r\n").format(eui_data, command),'ascii'))
-            ser.flush()
             command = ""
             on_state = True
             start = time.time()
@@ -114,8 +112,8 @@ if __name__ == "__main__":
     ser = serial.Serial(port, baud, timeout=0)
     #시리얼 읽을 쓰레드 생성
     log.info("LoRa & gpio handler is running!")
-    read_t = threading.Thread(target=readThread, args=(ser,exitThread))
+    
     write_t = threading.Thread(target=writeThread, args=(ser,exitThread))
     #시작!
-    read_t.start()
+
     write_t.start()
