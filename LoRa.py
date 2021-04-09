@@ -77,14 +77,14 @@ def writeThread(ser, exitThread):
         audio_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio112/value'))
         pir_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio113/value'))
         if camera_detect or audio_detect or pir_detect or lora_detect:
-            if camera_detect == "1":
+            if camera_detect:
                 log.info("camera detect")
                 command = "CAMERA:LIGHTON"
                 os.system("echo 0 > /sys/class/gpio/gpio111/value")
-            if audio_detect == "1":
+            if audio_detect:
                 log.info("audio detect")
                 command = "AUDIO:LIGHTON"
-            if pir_detect == "1":
+            if pir_detect:
                 log.info("pir detect")
                 command = "PIR:LIGHTON"
                 os.system('echo 0 > /sys/class/gpio/gpio113/value')
