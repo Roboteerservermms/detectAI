@@ -101,9 +101,9 @@ def writeThread(ser, exitThread):
             playsound("teemo.mp3")
         else :
             if on_state:
-            	t = time.time() - start
+                t = time.time() - start
                 player.play()
-            	if t >= ontime:
+                if t >= ontime:
                     player.pause()
                     log.info("light off")
                     on_state = False
