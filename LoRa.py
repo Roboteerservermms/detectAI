@@ -72,6 +72,7 @@ def writeThread(ser, exitThread):
     camera_detect = ""
     audio_detect = ""
     pir_detect = ""
+    subprocess.getoutput('vlc-ctrl pause')
     while not exitThread:
         camera_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio111/value'))
         audio_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio112/value'))
@@ -96,10 +97,10 @@ def writeThread(ser, exitThread):
         else :
             if on_state:
                 t = time.time() - start
-                subprocess.getoutput('sudo -u orangepi -H sh -c "vlc-ctrl play"')
+                subprocess.getoutput('vlc-ctrl play')
                 if t >= ontime:
                     log.info("light off")
-                    subprocess.getoutput('sudo -u orangepi -H sh -c "vlc-ctrl pause"')
+                    subprocess.getoutput('vlc-ctrl pause')
                     on_state = False
                     os.system('echo 0 > /sys/class/gpio/gpio65/value & echo 1 > /sys/class/gpio/gpio74/value')
 
