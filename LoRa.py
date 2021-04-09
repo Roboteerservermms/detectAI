@@ -69,15 +69,6 @@ def readThread(ser, exitThread):
                     protocol(line)
                     del line[:]
 
-def setup_player(filename, on_state):
-    vlc_instance = vlc.Instance('--fullscreen')
-    player = vlc_instance.media_player_new()
-    media = vlc_instance.media_new(filename)
-    player.set_media(media)
-    if on_state:
-        player.play()   
-    else:
-        player.pause()   
 def writeThread(ser, exitThread):
     on_state = False
     start = time.time()
@@ -85,6 +76,10 @@ def writeThread(ser, exitThread):
     camera_detect = ""
     audio_detect = ""
     pir_detect = ""
+    vlc_instance = vlc.Instance('--fullscreen')
+    player = vlc_instance.media_player_new()
+    media = vlc_instance.media_new('video.mp4')
+    player.set_media(media)    
     while not exitThread:
         camera_detect = subprocess.getoutput('cat /sys/class/gpio/gpio111/value')
         audio_detect = subprocess.getoutput('cat /sys/class/gpio/gpio112/value')
@@ -110,8 +105,9 @@ def writeThread(ser, exitThread):
         else :
             if on_state:
             	t = time.time() - start
-                setup_player("video.mp4")
+                player.play()
             	if t >= ontime:
+                    player.pause()
                     log.info("light off")
                     on_state = False
                     os.system('echo 0 > /sys/class/gpio/gpio65/value & echo 1 > /sys/class/gpio/gpio74/value')
