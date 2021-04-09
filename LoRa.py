@@ -4,9 +4,7 @@ import time
 import signal
 import threading
 import os
-from haversine import haversine
 import logging
-import queue
 import subprocess
 from playsound import playsound
 import vlc
@@ -18,7 +16,6 @@ main_gpio = 65
 camera_gpio = 111
 audio_gpio = 112
 pir_gpio = 113
-
 exitThread = False   # 쓰레드 종료용 변수
 start = (0,0)
 distance = None
@@ -49,6 +46,8 @@ def handler(signum, frame):
     global exitThread
     exitThread = True
 
+def str2bool(v):
+   return str(v).lower() in ("yes", "true", "t", "1")
 #본 쓰레드
 def readThread(ser, exitThread):
     global line
@@ -74,10 +73,10 @@ def writeThread(ser, exitThread):
     audio_detect = ""
     pir_detect = ""
     while not exitThread:
-        camera_detect = subprocess.getoutput('cat /sys/class/gpio/gpio111/value')
-        audio_detect = subprocess.getoutput('cat /sys/class/gpio/gpio112/value')
-        pir_detect = subprocess.getoutput('cat /sys/class/gpio/gpio113/value')
-        if camera_detect == "1" or audio_detect == "1" or pir_detect == "1" or lora_detect:
+        camera_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio111/value'))
+        audio_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio112/value'))
+        pir_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio113/value'))
+        if camera_detect or audio_detect or pir_detect or lora_detect:
             if camera_detect == "1":
                 log.info("camera detect")
                 command = "CAMERA:LIGHTON"

@@ -1,19 +1,16 @@
-import imp
-import platform, subprocess
+import datetime
+import subprocess
 from edgetpu.detection.engine import DetectionEngine
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
-import signal
-import threading
 import cv2, numpy as np, time
-import sys
-import logging
-import os
-import math
+import logging 
 from pathlib import Path
 from playsound import playsound
 
+from numpy.core.fromnumeric import partition
+import crolling, schedule
 
 def ReadLabelFile(file_path):
     with open(file_path, 'r') as (f):
@@ -41,11 +38,26 @@ def ious(box1):
     return iou
   return inner_iou
 
+def detect_function(img, object):
+    num_gpio = 111
+    img_file_path= './uploads/'
+    subprocess.getoutput('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
+    now= datetime.datetime.now()
+    partition_usage=int(subprocess.getoutput("df | grep /dev/mmcblk0p2 | cut -c 45-46"))
+    img_file_name = '{0}{1}{2}.jpg'.format( img_file_path,now.strftime("%Y%m%d"),object)
+    if partition_usage > 90:
+        old_file_name =subprocess.getoutput("ls -tr {} | head -n 1".format(img_file_path))
+        subprocess.getoutput("rm -rf {0}{2}".format(img_file_path, old_file_name))
+    img.save(img_file_name, "JPEG", quality=80, optimize=True, progressive=True)
+    subprocess.getoutput("sync")
+
+def weather_func():
+    global now_weather
+    now_weather = crolling.nowcast("성수1가제1동")
 
 def detectThread(exitThread):
-    global accumulate, on_state, num_gpio, threshold
+    global  threshold
 
-    num_gpio = 111
     threshold = 60
 
     log = logging.getLogger('detect')
@@ -60,12 +72,8 @@ def detectThread(exitThread):
     labels = ReadLabelFile(labelfile) if labelfile else None
     labelids = labels.keys()
     cap = cv2.VideoCapture(0)
-    #cap = cv2.VideoCapture("./0724/vehicle_20m_01.mp4")
-    accumulate = 0
-    on_state = False
     detect = 0
     frames = 0
-    img_file_path = "./uploads/"
     
     # detection for moving vehicle
     store_boxes = [] # past boxes for calculating IOU
@@ -74,36 +82,20 @@ def detectThread(exitThread):
     ret_ious = [0] * num_store # ious between (current-2 and current), (current-1 and current) frames
     moving_threshold = [0.5, 0.80]
     
-    class State(object):
-        def __init__(self, logger):
-            self.logger = logger
-        
-        def update_state(self, on=None, on_state=None):
-            if on is not None and on_state is not None:
-                if on:
-                    if not on_state:
-                        on_state = True
-                        self.logger.info("Camera: light's on")
-                        accumulate = 0
-                        return on_state
-                else:
-                    if on_state:
-                        on_state = False
-                        return on_state
-
-    
-    state = State(log)
-    count = 0
+    weather_func()
+    schedule.every().hour.do(weather_func)
     while not exitThread:
         ret, frame = cap.read()
+        schedule.run_pending()
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         img = Image.fromarray(frame)
-        fontsize = 20
+        fontsize = 5
         font = ImageFont.truetype('Ubuntu-L.ttf', fontsize)
         draw = ImageDraw.Draw(img)
         time_start = time.time()*1000
         ans = engine.detect_with_image(img, threshold=threshold, keep_aspect_ratio=True, relative_coord=False, top_k=10)
         # draw.text(xy=(30, 10), text='frame: {}'.format(frames), font=ImageFont.truetype('Ubuntu-L.ttf', 20), fill=(255,255,0))
+        draw.text(xy=(30, 10), text='{}'.format(now_weather), font=ImageFont.truetype('./NanumGothic.ttf', 20), fill=(0,0,0))
         frames += 1
         if ans:
             detect = 1
@@ -115,19 +107,8 @@ def detectThread(exitThread):
                     draw.rectangle(box, outline='yellow')
                     if obj.label_id == 0:
                         if detect == 1:
-                            accumulate = 0
                             detect = 0
-                            os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
-                            on_state = state.update_state(on=True, on_state=on_state)
-                            now=subprocess.getoutput('date "+%y-%m-%d_%H_%M_%S"')
-                            disk_usage=int(subprocess.getoutput("df | grep /dev/mmcblk0p2 | cut -c 45-46"))
-                            img_file_name = '{0}{1}.jpg'.format(img_file_path,now)
-                            if disk_usage > 81:
-                                old_file_name=subprocess.getoutput("ls -tr {}| head -n 1".format(img_file_path))
-                                subprocess.getoutput("rm -rf {0}{1}".format(img_file_path,old_file_name))
-                            else : 
-                                img.save(img_file_name, "JPEG", quality=80, optimize=True, progressive=True)
-                            subprocess.getoutput("sync")
+                            detect_function(img,object="person")
                     else:
                         curr_boxes.append(box)
 
@@ -154,21 +135,17 @@ def detectThread(exitThread):
                 if moving.any():
                     print("vehicle is moving")
                     if detect == 1:
-                        accumulate = 0
                         detect = 0
-                        os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
-                        on_state = state.update_state(on=True, on_state=on_state)
-                        disk_usage=math.ceil(float(subprocess.getoutput("df | grep boot | cut -c 45-46")))
-                        now=subprocess.getoutput('date "+%y-%m-%d_%H:%M:%S"')
-                        img_file_name = '{0}{1}.bmp'.format(img_file_path,now)
-                        if disk_usage > 81:
-                            old_file_name=subprocess.getoutput("ls -tr {}| head -n 1".format(img_file_path))
-                            subprocess.getoutput("rm -rf {0}{1}".format(img_file_path,old_file_name))
-                        else : 
-                            img.save(img_file_name, 'BMP')
-                        subprocess.getoutput("sync")
+                        detect_function(img,object="moving_vehicle")
                     break
-        
+
+
+        frame = np.array(img)
+        frame = frame[:, :, ::-1].copy()
+        cv2.imshow('detection', frame)
+        if cv2.waitKey(1) == 27:
+            log.error('exit program')
+            break
         
 if __name__ == '__main__':
     global ontime
