@@ -17,19 +17,14 @@ done
 echo 1 > /sys/class/gpio/gpio74/value ## to control relay
 export PYTHONPATH="/home/orangepi/detectAI"
 cd $PYTHONPATH
-sudo -u orangepi -H sh -c "vlc  --loop --fullscreen --video-on-top"
-video_list=$(ls -tr ./playlist/)
-for num in $video_list; do
-    sudo -u orangepi -H sh -c "vlc --one-instance --playlist-enqueue ./playlist/$num"
-done
-sudo -u orangepi -H sh -c "vlc-ctrl play"
-sudo -u orangepi -H sh -c "vlc-ctrl pause"
-
 python3 detect.py & 
 echo "camera start!" &
 python3 LoRa.py & 
 echo "LoRa start!" &
 python3 app.py &
-echo "server start!"
+echo "server start!" &
+sudo -u orangepi -H sh -c "vlc  --loop --fullscreen --video-on-top"&
+bash vlc.sh
+
 
 
