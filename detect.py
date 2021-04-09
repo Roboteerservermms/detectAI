@@ -47,7 +47,7 @@ def detect_function(img, object):
     img_file_name = '{0}{1}{2}.jpg'.format( img_file_path,now.strftime("%Y%m%d"),object)
     if partition_usage > 90:
         old_file_name =subprocess.getoutput("ls -tr {} | head -n 1".format(img_file_path))
-        subprocess.getoutput("rm -rf {0}{2}".format(img_file_path, old_file_name))
+        subprocess.getoutput("rm -rf {0}{1}".format(img_file_path, old_file_name))
     img.save(img_file_name, "JPEG", quality=80, optimize=True, progressive=True)
     subprocess.getoutput("sync")
 
@@ -94,7 +94,6 @@ def detectThread(exitThread):
         draw = ImageDraw.Draw(img)
         time_start = time.time()*1000
         ans = engine.detect_with_image(img, threshold=threshold, keep_aspect_ratio=True, relative_coord=False, top_k=10)
-        # draw.text(xy=(30, 10), text='frame: {}'.format(frames), font=ImageFont.truetype('Ubuntu-L.ttf', 20), fill=(255,255,0))
         draw.text(xy=(30, 10), text='{}'.format(now_weather), font=ImageFont.truetype('./NanumGothic.ttf', 20), fill=(0,0,0))
         frames += 1
         if ans:

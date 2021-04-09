@@ -13,7 +13,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = '#$%^&*'
 img_dir_path = "./uploads"
 img_file_path = "./uploads/"
-#app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 #파일 업로드 용량 제한 단위:바이트
+#app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 * 1024 #파일 업로드 용량 제한 단위:바이트
 file_list = []
 @app.errorhandler(404)
 def page_not_found(error):
@@ -32,19 +32,14 @@ def home_page():
 def upload_page():
 	return render_template('upload.html')
 
-@app.route('/video_feed')
-def video_feed():
-    #Video streaming route. Put this in the src attribute of an img tag
-    return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
-
-
 #파일 업로드 처리
 @app.route('/fileUpload', methods = ['GET', 'POST'])
 def upload_file():
     if request.method == 'POST':
         f = request.files['file']
         #저장할 경로 + 파일명
-        f.save('./uploads/' + secure_filename(f.filename))
+        f.save('./playlist/' + secure_filename(f.filename))
+        subprocess.run("vlc --one-instance --playlist-enqueue {}".format(f.filename))
         return render_template('check.html')
     else:
         return render_template('page_not_found.html')
