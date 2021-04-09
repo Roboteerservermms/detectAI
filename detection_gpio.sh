@@ -25,7 +25,7 @@ python3 app.py &
 echo "server start!"&
 sudo -u orangepi -H sh -c "vlc  --loop --fullscreen --video-on-top"
 video_list=$(ls -tr ./playlist/)
-for num in video_list; do
+for num in $video_list; do
     sudo -u orangepi -H sh -c "vlc --one-instance --playlist-enqueue ./playlist/$num"
 done
 sudo -u orangepi -H sh -c "vlc-ctrl play"
