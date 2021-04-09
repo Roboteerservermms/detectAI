@@ -65,7 +65,7 @@ def detectThread(exitThread):
     on_state = False
     detect = 0
     frames = 0
-    img_file_path = "./snapshot/"
+    img_file_path = "./uploads/"
     
     # detection for moving vehicle
     store_boxes = [] # past boxes for calculating IOU
@@ -119,14 +119,14 @@ def detectThread(exitThread):
                             detect = 0
                             os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                             on_state = state.update_state(on=True, on_state=on_state)
-                            disk_usage=math.ceil(float(subprocess.getoutput("bash check_disk_percent.sh")))
                             now=subprocess.getoutput('date "+%y-%m-%d_%H_%M_%S"')
-                            img_file_name = '{0}{1}.bmp'.format(img_file_path,now)
-                            if disk_usage > 97:
+                            disk_usage=int(subprocess.getoutput("df | grep /dev/mmcblk0p2 | cut -c 45-46"))
+                            img_file_name = '{0}{1}.jpg'.format(img_file_path,now)
+                            if disk_usage > 81:
                                 old_file_name=subprocess.getoutput("ls -tr {}| head -n 1".format(img_file_path))
-                                os.system("rm -rf {0}{1}".format(old_file_name))
+                                subprocess.getoutput("rm -rf {0}{1}".format(img_file_path,old_file_name))
                             else : 
-                                img.save(img_file_name, 'BMP')
+                                img.save(img_file_name, "JPEG", quality=80, optimize=True, progressive=True)
                             subprocess.getoutput("sync")
                     else:
                         curr_boxes.append(box)
@@ -158,14 +158,15 @@ def detectThread(exitThread):
                         detect = 0
                         os.system('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                         on_state = state.update_state(on=True, on_state=on_state)
-                        disk_usage=math.ceil(float(subprocess.getoutput("bash check_disk_percent.sh")))
+                        disk_usage=math.ceil(float(subprocess.getoutput("df | grep boot | cut -c 45-46")))
                         now=subprocess.getoutput('date "+%y-%m-%d_%H:%M:%S"')
                         img_file_name = '{0}{1}.bmp'.format(img_file_path,now)
-                        if disk_usage > 97:
+                        if disk_usage > 81:
                             old_file_name=subprocess.getoutput("ls -tr {}| head -n 1".format(img_file_path))
-                            os.system("rm -rf {0}{1}".format(old_file_name))
+                            subprocess.getoutput("rm -rf {0}{1}".format(img_file_path,old_file_name))
                         else : 
                             img.save(img_file_name, 'BMP')
+                        subprocess.getoutput("sync")
                     break
         
         frame = np.array(img)
