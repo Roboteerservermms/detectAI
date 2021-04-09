@@ -22,9 +22,6 @@ pir_gpio = 113
 exitThread = False   # 쓰레드 종료용 변수
 start = (0,0)
 distance = None
-start_eui = 0x1f9eb7
-end_eui = 0x1f9f10
-start_latitude, start_longitude = 37.540166, 127.056670
 lora_detect = False
 log = logging.getLogger('detect')
 log.setLevel(logging.DEBUG)
@@ -125,5 +122,4 @@ if __name__ == "__main__":
     
     write_t = threading.Thread(target=writeThread, args=(ser,exitThread))
     #시작!
-    read_t.start()
     write_t.start()
