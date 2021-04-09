@@ -23,7 +23,6 @@ python3 LoRa.py &
 echo "LoRa start!" &
 python3 app.py &
 echo "server start!" &
-sudo -u orangepi -H sh -c "vlc  --loop --fullscreen --video-on-top"&
 bash vlc.sh
 
 
