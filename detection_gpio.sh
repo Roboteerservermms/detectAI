@@ -3,7 +3,6 @@ timedatectl set-timezone Asia/Seoul
 chmod 775 /sys/class/gpio/export
 chmod 775 /sys/class/gpio/unexport
 echo "Start AI Detection!"
-sudo -u orangepi -H sh -c "vlc  --loop --fullscreen --video-on-top"
 for gpio in "65" "74" "111" "112" "113"; do
     GPIO_DIR=$(ls /sys/class/gpio/ | grep ${gpio})
     if [ -n "$GPIO_DIR" ]; then
@@ -18,18 +17,19 @@ done
 echo 1 > /sys/class/gpio/gpio74/value ## to control relay
 export PYTHONPATH="/home/orangepi/detectAI"
 cd $PYTHONPATH
-python3 detect.py & 
-echo "camera start!" &
-python3 LoRa.py & 
-echo "LoRa start!" &
-python3 app.py &
-echo "server start!"&
-
+sudo -u orangepi -H sh -c "vlc  --loop --fullscreen --video-on-top"
 video_list=$(ls -tr ./playlist/)
 for num in $video_list; do
     sudo -u orangepi -H sh -c "vlc --one-instance --playlist-enqueue ./playlist/$num"
 done
 sudo -u orangepi -H sh -c "vlc-ctrl play"
 sudo -u orangepi -H sh -c "vlc-ctrl pause"
+
+python3 detect.py & 
+echo "camera start!" &
+python3 LoRa.py & 
+echo "LoRa start!" &
+python3 app.py &
+echo "server start!"
 
 
