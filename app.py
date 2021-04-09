@@ -35,11 +35,12 @@ def upload_page():
 #파일 업로드 처리
 @app.route('/fileUpload', methods = ['GET', 'POST'])
 def upload_file():
+    playlist_path = "~/detectAI/playlist/"
     if request.method == 'POST':
         f = request.files['file']
         #저장할 경로 + 파일명
         f.save('./playlist/' + secure_filename(f.filename))
-        subprocess.run("vlc --one-instance --playlist-enqueue {}".format(f.filename))
+        subprocess.run('sudo -u orangepi -H sh -c "vlc --one-instance --playlist-enqueue {0}{1}"'.format(playlist_path,f.filename))
         return render_template('check.html')
     else:
         return render_template('page_not_found.html')
