@@ -103,7 +103,7 @@ def detectThread(exitThread):
         draw = ImageDraw.Draw(img)
         time_start = time.time()*1000
         ans = engine.detect_with_image(img, threshold=threshold, keep_aspect_ratio=True, relative_coord=False, top_k=10)
-        draw.text(xy=(30, 10), text='frame: {}'.format(frames), font=ImageFont.truetype('Ubuntu-L.ttf', 20), fill=(255,255,0))
+        # draw.text(xy=(30, 10), text='frame: {}'.format(frames), font=ImageFont.truetype('Ubuntu-L.ttf', 20), fill=(255,255,0))
         frames += 1
         if ans:
             detect = 1
@@ -169,12 +169,6 @@ def detectThread(exitThread):
                         subprocess.getoutput("sync")
                     break
         
-        frame = np.array(img)
-        frame = frame[:, :, ::-1].copy()
-        cv2.imshow('detection', frame)
-        if cv2.waitKey(1) == 27:
-            log.error('exit program')
-            break
         
 if __name__ == '__main__':
     global ontime
