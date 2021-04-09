@@ -4,10 +4,10 @@ import time
 import signal
 import threading
 import os
-from haversine import haversine
 import logging
-import queue
 import subprocess
+from playsound import playsound
+import vlc
 
 line = [] #라인 단위로 데이터 가져올 리스트 변수
 port = '/dev/ttyS3' # 시리얼 포트
@@ -16,13 +16,9 @@ main_gpio = 65
 camera_gpio = 111
 audio_gpio = 112
 pir_gpio = 113
-
 exitThread = False   # 쓰레드 종료용 변수
 start = (0,0)
 distance = None
-start_eui = 0x1f9eb7
-end_eui = 0x1f9f10
-start_latitude, start_longitude = 37.540166, 127.056670
 lora_detect = False
 log = logging.getLogger('detect')
 log.setLevel(logging.DEBUG)
@@ -50,6 +46,8 @@ def handler(signum, frame):
     global exitThread
     exitThread = True
 
+def str2bool(v):
+   return str(v).lower() in ("yes", "true", "t", "1")
 #본 쓰레드
 def readThread(ser, exitThread):
     global line
@@ -66,7 +64,7 @@ def readThread(ser, exitThread):
                 if c == 10:            
                     protocol(line)
                     del line[:]
-                    
+
 def writeThread(ser, exitThread):
     on_state = False
     start = time.time()
@@ -75,10 +73,10 @@ def writeThread(ser, exitThread):
     audio_detect = ""
     pir_detect = ""
     while not exitThread:
-        camera_detect = subprocess.getoutput('cat /sys/class/gpio/gpio111/value')
-        audio_detect = subprocess.getoutput('cat /sys/class/gpio/gpio112/value')
-        pir_detect = subprocess.getoutput('cat /sys/class/gpio/gpio113/value')
-        if camera_detect == "1" or audio_detect == "1" or pir_detect == "1" or lora_detect:
+        camera_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio111/value'))
+        audio_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio112/value'))
+        pir_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio113/value'))
+        if camera_detect or audio_detect or pir_detect or lora_detect:
             if camera_detect == "1":
                 log.info("camera detect")
                 command = "CAMERA:LIGHTON"
@@ -90,18 +88,21 @@ def writeThread(ser, exitThread):
                 log.info("pir detect")
                 command = "PIR:LIGHTON"
                 os.system('echo 0 > /sys/class/gpio/gpio113/value')
-            os.system('echo 1 > /sys/class/gpio/gpio65/value & echo 0 > /sys/class/gpio/gpio74/value')
-            log.info("{0} command send to {1}".format(command, eui_data))
+            os.system('echo 1 > /sys/class/gpio/gpio65/value & echo 1 > /sys/class/gpio/gpio74/value')
             command = ""
             on_state = True
             start = time.time()
+            playsound("teemo.mp3")
         else :
             if on_state:
-            	t = time.time() - start
-            	if t >= ontime:
+                t = time.time() - start
+                subprocess.run('sudo -u orangepi -H sh -c "vlc-ctrl play"')
+                if t >= ontime:
                     log.info("light off")
+                    subprocess.run('sudo -u orangepi -H sh -c "vlc-ctrl pause"')
                     on_state = False
                     os.system('echo 0 > /sys/class/gpio/gpio65/value & echo 1 > /sys/class/gpio/gpio74/value')
+
 
 if __name__ == "__main__":
     global ontime
@@ -115,5 +116,4 @@ if __name__ == "__main__":
     
     write_t = threading.Thread(target=writeThread, args=(ser,exitThread))
     #시작!
-
     write_t.start()

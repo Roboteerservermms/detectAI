@@ -22,6 +22,8 @@ echo "camera start!" &
 python3 LoRa.py & 
 echo "LoRa start!" &
 python3 app.py &
-echo "server start!"
+echo "server start!"&
+sudo -u orangepi -H sh -c "vlc --fullscreen --video-on-top ./playlist/video.mp4"
+vlc-ctrl pause
 
 
