@@ -69,16 +69,15 @@ def readThread(ser, exitThread):
                     protocol(line)
                     del line[:]
 
-def setup_player(filename):
+def setup_player(filename, on_state):
     vlc_instance = vlc.Instance('--fullscreen')
     player = vlc_instance.media_player_new()
     media = vlc_instance.media_new(filename)
     player.set_media(media)
-    print media.get_mrl() # File location to get title 
-    print player.get_length() #Time duration of file -1 means there is no   media
-    print player.get_state() #Player's state
-    player.play()   
-
+    if on_state:
+        player.play()   
+    else:
+        player.pause()   
 def writeThread(ser, exitThread):
     on_state = False
     start = time.time()
@@ -86,7 +85,6 @@ def writeThread(ser, exitThread):
     camera_detect = ""
     audio_detect = ""
     pir_detect = ""
-    cap = cv2.VideoCapture("video.mp4")
     while not exitThread:
         camera_detect = subprocess.getoutput('cat /sys/class/gpio/gpio111/value')
         audio_detect = subprocess.getoutput('cat /sys/class/gpio/gpio112/value')
