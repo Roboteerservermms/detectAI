@@ -96,10 +96,10 @@ def writeThread(ser, exitThread):
         else :
             if on_state:
                 t = time.time() - start
-                subprocess.run('sudo -u orangepi -H sh -c "vlc-ctrl play"')
+                subprocess.getoutput('sudo -u orangepi -H sh -c "vlc-ctrl play"')
                 if t >= ontime:
                     log.info("light off")
-                    subprocess.run('sudo -u orangepi -H sh -c "vlc-ctrl pause"')
+                    subprocess.getoutput('sudo -u orangepi -H sh -c "vlc-ctrl pause"')
                     on_state = False
                     os.system('echo 0 > /sys/class/gpio/gpio65/value & echo 1 > /sys/class/gpio/gpio74/value')
 
