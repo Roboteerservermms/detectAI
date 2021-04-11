@@ -80,15 +80,16 @@ def writeThread(ser, exitThread):
             if camera_detect:
                 log.info("camera detect")
                 command = "CAMERA:LIGHTON"
-                os.system("echo 0 > /sys/class/gpio/gpio111/value")
+                subprocess.getoutput("echo 0 > /sys/class/gpio/gpio111/value")
             if audio_detect:
                 log.info("audio detect")
                 command = "AUDIO:LIGHTON"
             if pir_detect:
                 log.info("pir detect")
                 command = "PIR:LIGHTON"
-                os.system('echo 0 > /sys/class/gpio/gpio113/value')
-            os.system('echo 1 > /sys/class/gpio/gpio65/value & echo 1 > /sys/class/gpio/gpio74/value & vlc-ctrl play')
+                subprocess.getoutput('echo 0 > /sys/class/gpio/gpio113/value')
+            subprocess.getoutput('echo 1 > /sys/class/gpio/gpio65/value & echo 1 > /sys/class/gpio/gpio74/value')
+            os.system('sudo -u orangepi -H sh -c "vlc-ctrl play"')
             command = ""
             on_state = True
             start = time.time()
@@ -98,8 +99,9 @@ def writeThread(ser, exitThread):
                 t = time.time() - start
                 if t >= ontime:
                     log.info("light off")
+                    os.system('sudo -u orangepi -H sh -c "vlc-ctrl pause"')
                     on_state = False
-                    os.system('echo 0 > /sys/class/gpio/gpio65/value & echo 1 > /sys/class/gpio/gpio74/value & vlc-ctrl pause')
+                    subprocess.getoutput('echo 0 > /sys/class/gpio/gpio65/value & echo 1 > /sys/class/gpio/gpio74/value')
 
 
 if __name__ == "__main__":
