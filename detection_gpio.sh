@@ -23,7 +23,7 @@ python3 LoRa.py &
 echo "LoRa start!" &
 python3 app.py &
 echo "server start!" &
-python3 vlc.py
+python3 video.py
 
 
 
