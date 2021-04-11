@@ -75,7 +75,7 @@ def writeThread(ser, exitThread):
     video_dir="./playlist"
     video_path="./playlist/"
     on_state = False
-    instance = vlc.Instance('--input-repeat=-1', '--fullscreen')
+    instance = vlc.Instance('--input-repeat=-1', '--no-video-title-show', '--fullscreen', '--mouse-hide-timeout=0')
     player = instance.media_list_player_new()
     media_list = instance.media_list_new()
     video_list = os.listdir(video_dir)
