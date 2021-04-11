@@ -114,7 +114,7 @@ def writeThread(ser, exitThread):
                 if t >= ontime:
                     log.info("light off")
                     on_state = False
-                    player.play()
+                    player.pause()
                     os.system('echo 0  > /sys/class/gpio/gpio65/value & echo 1 > /sys/class/gpio/gpio74/value')
 
 
