@@ -79,15 +79,15 @@ def writeThread(ser, exitThread):
             if camera_detect:
                 log.info("camera detect")
                 command = "CAMERA:LIGHTON"
-                subprocess.getoutput("echo 0 > /sys/class/gpio/gpio111/value")
+                os.system('echo 0  > /sys/class/gpio/gpio111/value')
             if audio_detect:
                 log.info("audio detect")
                 command = "AUDIO:LIGHTON"
             if pir_detect:
                 log.info("pir detect")
                 command = "PIR:LIGHTON"
-                subprocess.getoutput('echo 0 > /sys/class/gpio/gpio113/value')
-            subprocess.getoutput('echo 1 > /sys/class/gpio/gpio65/value & echo 1 > /sys/class/gpio/gpio74/value')
+                os.system('echo 0  > /sys/class/gpio/gpio113/value')
+            os.system('echo 1 > /sys/class/gpio/gpio65/value & echo 0 > /sys/class/gpio/gpio74/value')
             command = ""
             on_state = True
             start = time.time()
@@ -98,7 +98,7 @@ def writeThread(ser, exitThread):
                 if t >= ontime:
                     log.info("light off")
                     on_state = False
-                    subprocess.getoutput('echo 0 > /sys/class/gpio/gpio65/value & echo 1 > /sys/class/gpio/gpio74/value')
+                    os.system('echo 0  > /sys/class/gpio/gpio65/value & echo 1 > /sys/class/gpio/gpio74/value')
 
 
 if __name__ == "__main__":
