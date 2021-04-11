@@ -7,7 +7,7 @@ import os
 import logging
 import subprocess
 from playsound import playsound
-
+import vlc
 line = [] #라인 단위로 데이터 가져올 리스트 변수
 port = '/dev/ttyS3' # 시리얼 포트
 baud = 115200 # 시리얼 보드레이트(통신속도)
@@ -71,6 +71,21 @@ def writeThread(ser, exitThread):
     camera_detect = ""
     audio_detect = ""
     pir_detect = ""
+
+    video_dir="./playlist"
+    video_path="./playlist/"
+    on_state = False
+    instance = vlc.Instance('--input-repeat=-1', '--fullscreen')
+    player = instance.media_list_player_new()
+    media_list = instance.media_list_new()
+    video_list = os.listdir(video_dir)
+    for v in video_list:
+        media = instance.media_new(video_path + v)
+        media_list.add_media(media)
+
+    player.set_media_list(media_list)
+    player.play()
+    player.pause()
     while not exitThread:
         camera_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio111/value'))
         audio_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio112/value'))
@@ -91,13 +106,16 @@ def writeThread(ser, exitThread):
             command = ""
             on_state = True
             start = time.time()
-            playsound("teemo.mp3")
+            if not on_state:
+                playsound("teemo.mp3")
+                player.play()
         else :
             if on_state:
                 t = time.time() - start
                 if t >= ontime:
                     log.info("light off")
                     on_state = False
+                    player.play()
                     os.system('echo 0  > /sys/class/gpio/gpio65/value & echo 1 > /sys/class/gpio/gpio74/value')
 
 
