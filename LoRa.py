@@ -84,7 +84,7 @@ def writeThread(ser, exitThread):
     for v in video_list:
         media = instance.media_new(video_path + v)
         media_list.add_media(media)
-    media_list_player.set_playback_mode()
+    media_list_player.set_playback_mode(True)
     media_list_player.set_media_list(media_list)
     player.pause()
     while not exitThread:
