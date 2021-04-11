@@ -13,7 +13,7 @@ def handler(signum, frame):
     global exitThread
     exitThread = True
 
-def play_and_pause(exitThread):
+def play_and_pause():
     os.system("bash vlc.sh")
     object_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio65/value'))
     while exitThread:
@@ -32,6 +32,6 @@ if __name__ == "__main__":
     #시리얼 읽을 쓰레드 생성
     log.info("vlc play running!")
     
-    vlc_player = threading.Thread(target=play_and_pause, args=(exitThread))
+    vlc_player = threading.Thread(target=play_and_pause)
     #시작!
     vlc_player.start()
