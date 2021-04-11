@@ -10,8 +10,8 @@ player = instance.media_list_player_new()
 media_list = instance.media_list_new()
 video_list = os.listdir(video_dir)
 for v in video_list:
-    media = instance.media_new(v)
-    media_list.add_media(video_path + media)
+    media = instance.media_new(video_path + v)
+    media_list.add_media(media)
 
 player.set_media_list(media_list)
 player.play()
