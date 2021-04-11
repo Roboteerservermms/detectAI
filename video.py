@@ -5,7 +5,7 @@ import os, subprocess
 video_dir="./playlist"
 video_path="./playlist/"
 on_state = False
-instance = vlc.Instance('--input-repeat=-1', '--fullscreen', '--one-instance')
+instance = vlc.Instance('--input-repeat=-1', '--fullscreen')
 player = instance.media_list_player_new()
 media_list = instance.media_list_new()
 video_list = os.listdir(video_dir)
@@ -26,4 +26,5 @@ while True:
         on_state =True
         
     else:
+        on_state = False
         player.pause()

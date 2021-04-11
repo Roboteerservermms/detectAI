@@ -88,7 +88,6 @@ def writeThread(ser, exitThread):
                 command = "PIR:LIGHTON"
                 subprocess.getoutput('echo 0 > /sys/class/gpio/gpio113/value')
             subprocess.getoutput('echo 1 > /sys/class/gpio/gpio65/value & echo 1 > /sys/class/gpio/gpio74/value')
-            os.system('sudo -u orangepi -H sh -c "vlc-ctrl play"')
             command = ""
             on_state = True
             start = time.time()
@@ -98,7 +97,6 @@ def writeThread(ser, exitThread):
                 t = time.time() - start
                 if t >= ontime:
                     log.info("light off")
-                    os.system('sudo -u orangepi -H sh -c "vlc-ctrl pause"')
                     on_state = False
                     subprocess.getoutput('echo 0 > /sys/class/gpio/gpio65/value & echo 1 > /sys/class/gpio/gpio74/value')
 
