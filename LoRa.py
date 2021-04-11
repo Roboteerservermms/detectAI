@@ -77,8 +77,6 @@ def writeThread(ser, exitThread):
     on_state = False
     instance = vlc.Instance('--input-repeat=-1', '--no-video-title-show', '--fullscreen', '--mouse-hide-timeout=0')
     media_list_player = instance.media_list_player_new()
-    player = media_list_player.get_media_player()
-    player.toggle_fullscreen()
     media_list = instance.media_list_new()
     video_list = os.listdir(video_dir)
     for v in video_list:
@@ -86,6 +84,8 @@ def writeThread(ser, exitThread):
         media_list.add_media(media)
     media_list_player.set_playback_mode(True)
     media_list_player.set_media_list(media_list)
+    player = media_list_player.get_media_player()
+    player.set_fullscreen(True)
     player.pause()
     while not exitThread:
         camera_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio111/value'))
