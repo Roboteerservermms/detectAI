@@ -77,7 +77,7 @@ def writeThread(ser, exitThread):
     on_state = False
     instance = vlc.Instance('--input-repeat=-1', '--no-video-title-show', '--fullscreen', '--mouse-hide-timeout=0')
     player = instance.media_list_player_new()
-    player.set_fullscreen(True)
+    player.toggle_fullscreen()
     media_list = instance.media_list_new()
     video_list = os.listdir(video_dir)
     for v in video_list:
