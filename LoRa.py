@@ -84,7 +84,6 @@ def writeThread(ser, exitThread):
         media_list.add_media(media)
 
     player.set_media_list(media_list)
-    player.play()
     player.pause()
     while not exitThread:
         camera_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio111/value'))
