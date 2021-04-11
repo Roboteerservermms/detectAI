@@ -77,12 +77,13 @@ def writeThread(ser, exitThread):
     on_state = False
     instance = vlc.Instance('--input-repeat=-1', '--no-video-title-show', '--fullscreen', '--mouse-hide-timeout=0')
     player = instance.media_list_player_new()
+    player.set_fullscreen(True)
     media_list = instance.media_list_new()
     video_list = os.listdir(video_dir)
     for v in video_list:
         media = instance.media_new(video_path + v)
         media_list.add_media(media)
-
+    player.vlm_set_loop("playlist", True)
     player.set_media_list(media_list)
     player.pause()
     while not exitThread:
