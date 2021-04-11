@@ -26,5 +26,6 @@ while True:
         on_state =True
         
     else:
+        if on_state:
+            player.pause()
         on_state = False
-        player.pause()
