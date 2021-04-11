@@ -23,7 +23,7 @@ python3 LoRa.py &
 echo "LoRa start!" &
 python3 app.py &
 echo "server start!" &
-bash vlc.sh
+sudo -u orangepi -H python3 vlc.py
 
 
 
