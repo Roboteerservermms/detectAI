@@ -7,7 +7,6 @@ import os
 import logging
 import subprocess
 from playsound import playsound
-import vlc
 
 line = [] #라인 단위로 데이터 가져올 리스트 변수
 port = '/dev/ttyS3' # 시리얼 포트
