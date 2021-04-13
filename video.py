@@ -26,7 +26,7 @@ while True:
         if not on_state:
             player.play()
         video_state = player.get_state()
-        if video_state == vlc.State.Ended and video_state == vlc.State.Stopped :
+        if video_state == vlc.State.Ended or video_state == vlc.State.Stopped :
             player.play()
         on_state =True
         
