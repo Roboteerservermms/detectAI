@@ -24,7 +24,9 @@ log.setLevel(logging.DEBUG)
 log_handler = logging.StreamHandler()
 log.addHandler(log_handler)
 eui_data=0x1f9eb7
-    
+videourl="rtsp://58.233.189.40:554/video1+audio1"
+
+
 def protocol(recv):
     global lora_detect
     tmp = ''.join(recv)
@@ -113,11 +115,16 @@ def writeThread(ser, exitThread):
         else :
             if on_state:
                 t = time.time() - start
+                video_state = player.get_state()
+                if video_state == "stop":
+                    player.play()
                 if t >= ontime:
                     log.info("light off")
                     on_state = False
                     player.pause()
                     os.system('echo 0  > /sys/class/gpio/gpio65/value & echo 1 > /sys/class/gpio/gpio74/value')
+            
+            
 
 
 if __name__ == "__main__":
