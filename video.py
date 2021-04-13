@@ -31,5 +31,6 @@ while True:
         on_state =True
         
     else:
-        on_state = False
-        player.pause()
+        if on_state:
+            on_state = False
+            player.pause()
