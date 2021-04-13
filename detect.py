@@ -51,9 +51,6 @@ def detect_function(img, object):
     img.save(img_file_name, "JPEG", quality=80, optimize=True, progressive=True)
     subprocess.getoutput("sync")
 
-def weather_func():
-    global now_weather
-    now_weather = crolling.nowcast("성수1가제1동")
 
 def detectThread(exitThread):
     global  threshold
@@ -82,8 +79,7 @@ def detectThread(exitThread):
     ret_ious = [0] * num_store # ious between (current-2 and current), (current-1 and current) frames
     moving_threshold = [0.5, 0.80]
     
-    weather_func()
-    schedule.every().hour.do(weather_func)
+
     while not exitThread:
         ret, frame = cap.read()
         schedule.run_pending()
@@ -94,7 +90,6 @@ def detectThread(exitThread):
         draw = ImageDraw.Draw(img)
         time_start = time.time()*1000
         ans = engine.detect_with_image(img, threshold=threshold, keep_aspect_ratio=True, relative_coord=False, top_k=10)
-        draw.text(xy=(30, 10), text='{}'.format(now_weather), font=ImageFont.truetype('./NanumGothic.ttf', 20), fill=(0,0,0))
         frames += 1
         if ans:
             detect = 1

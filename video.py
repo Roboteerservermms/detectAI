@@ -1,5 +1,6 @@
 # importing vlc module
 import vlc
+import crolling, schedule
 import os, subprocess
 
 video_dir="./playlist"
@@ -17,15 +18,16 @@ player.set_media_list(media_list)
 
 def str2bool(v):
    return str(v).lower() in ("yes", "true", "t", "1")
+ 
 
 while True:
-    object_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio65/value'))
+    object_detect = True # str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio65/value'))
+    schedule.every().hour.do(crolling.weather_func())
     if object_detect:
         if not on_state:
             player.play()
         on_state =True
         
     else:
-        if on_state:
-            player.pause()
         on_state = False
+        player.pause()
