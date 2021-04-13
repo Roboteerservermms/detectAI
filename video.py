@@ -21,10 +21,12 @@ def str2bool(v):
  
 
 while True:
-    object_detect = True # str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio65/value'))
-    schedule.every().hour.do(crolling.weather_func())
+    object_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio65/value'))
     if object_detect:
         if not on_state:
+            player.play()
+        video_state = player.get_state()
+        if video_state == vlc.State.Ended and video_state == vlc.State.Stopped :
             player.play()
         on_state =True
         

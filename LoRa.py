@@ -77,18 +77,6 @@ def writeThread(ser, exitThread):
     video_dir="./playlist"
     video_path="./playlist/"
     on_state = False
-    instance = vlc.Instance('--input-repeat=-1', '--no-video-title-show', '--fullscreen', '--mouse-hide-timeout=0')
-    media_list_player = instance.media_list_player_new()
-    media_list = instance.media_list_new()
-    video_list = os.listdir(video_dir)
-    for v in video_list:
-        media = instance.media_new(video_path + v)
-        media_list.add_media(media)
-    media_list_player.set_playback_mode(True)
-    media_list_player.set_media_list(media_list)
-    player = media_list_player.get_media_player()
-    player.set_fullscreen(True)
-    player.pause()
     while not exitThread:
         camera_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio111/value'))
         audio_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio112/value'))
@@ -111,17 +99,12 @@ def writeThread(ser, exitThread):
             start = time.time()
             if not on_state:
                 playsound("teemo.mp3")
-                player.play()
         else :
             if on_state:
                 t = time.time() - start
-                video_state = player.get_state()
-                if video_state == "stop":
-                    player.play()
                 if t >= ontime:
                     log.info("light off")
                     on_state = False
-                    player.pause()
                     os.system('echo 0  > /sys/class/gpio/gpio65/value & echo 0 > /sys/class/gpio/gpio74/value')
             
             
