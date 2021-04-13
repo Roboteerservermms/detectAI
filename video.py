@@ -14,6 +14,10 @@ for v in video_list:
     media = instance.media_new(video_path + v)
     media_list.add_media(media)
 
+m_p = instance.media_player_new()
+m_p.set_fullscreen(True)
+
+player.set_media_player(m_p)
 player.set_media_list(media_list)
 
 def str2bool(v):
