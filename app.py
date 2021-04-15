@@ -90,6 +90,6 @@ def handler(signum, frame):
 if __name__ == '__main__':
     global media_insert_queue
     media_insert_queue = queue.Queue()
-    video_proc = Process(target=video.MainThread,args=(media_insert_queue)).start()
+    video_proc = Process(target=video.MainThread,args=(media_insert_queue,)).start()
     #서버 실행
     app.run(host='10.42.0.1', debug = False) ## 카메라 사용시 debug false해야만 가능 
