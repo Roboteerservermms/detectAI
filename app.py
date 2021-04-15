@@ -26,24 +26,23 @@ def page_not_found(error):
 #HTML 렌더링
 @app.route('/')
 def home_page():
-	weather_data = crolling.nowcast("성수1가제1동").split("-")
-	return render_template('home.html', now_weather=weather_data)
+    weather_data = crolling.nowcast("성수1가제1동").split("-")
+    return render_template('home.html', now_weather=weather_data)
 
 
 #업로드 HTML 렌더링
 @app.route('/upload')
 def upload_page():
-	return render_template('upload.html')
+    return render_template('upload.html')
 
 #파일 업로드 처리
 @app.route('/fileUpload', methods = ['GET', 'POST'])
 def upload_file():
-    playlist_path = "./playlist/"
     if request.method == 'POST':
         media_insert_queue.put(True)
         f = request.files['file']
         #저장할 경로 + 파일명
-        f.save(playlist_path + secure_filename(f.filename))
+        f.save("./playlist/" + secure_filename(f.filename))
         return render_template('check.html')
     else:
         return render_template('page_not_found.html')
@@ -57,28 +56,27 @@ class InfoForm(FlaskForm):
 @app.route('/downfile', methods = ['GET', 'POST'])
 def down_page():
     form = InfoForm()
-    if form.validate_on_submit():
-        session['startdate'] = form.startdate.data
-        session['enddate'] = form.enddate.data
-        return redirect('fileDown')
     return render_template('filedown.html',form=form)
 
 #파일 다운로드 처리
 @app.route('/fileDown', methods = ['GET', 'POST'])
 def down_file():
-    zip_file_list=[]
-    startdate = datetime.datetime.strptime(session['startdate'],'%Y-%m-%d')
-    enddate = datetime.datetime.strptime(session['enddate'],'%Y-%m-%d')
-    for f in os.listdir(img_dir_path):
-        file = img_file_path + f
-        if os.path.getctime(file) >= startdate and os.path.getctime(file) <= enddate:
-            zip_file_list.append(file)
-    if zip_file_list:
-        subprocess.run("zip -r ./temp.zip {}".format(zip_file_list))
-        path = "./"
-        return send_file(path + "temp.zip",
-                attachment_filename = "temp.zip",
-                as_attachment=True)
+    if request.method == 'POST':
+        sw=0
+        zip_file_list=[]
+        startdate = datetime.datetime.strptime(request.form['startdate'],'%Y-%m-%d')
+        enddate = datetime.datetime.strptime(request.form['enddate'],'%Y-%m-%d')
+        for f in os.listdir(img_dir_path):
+            file = img_file_path + f
+            if os.path.getctime(file) >= startdate and os.path.getctime(file) <= enddate:
+                zip_file_list.append(file)
+        if zip_file_list:
+            subprocess.run("tar -cvf ./temp.tar {}".format(zip_file_list))
+            return send_file("./temp.tar",
+                    attachment_filename = "./temp.tar",
+                    as_attachment=True)
+        else:
+            return render_template('page_not_found.html')
     else:
         return render_template('page_not_found.html')
 
@@ -92,4 +90,4 @@ if __name__ == '__main__':
     media_insert_queue = queue.Queue()
     video_proc = Process(target=video.MainThread,args=(exitThread,media_insert_queue)).start()
     #서버 실행
-    app.run(host='10.42.0.1', debug = True) ## 카메라 사용시 debug false해야만 가능 
+    app.run(host='10.42.0.1', debug = False) ## 카메라 사용시 debug false해야만 가능 
