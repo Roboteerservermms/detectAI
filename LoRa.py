@@ -8,7 +8,6 @@ import logging
 import subprocess
 from playsound import playsound
 import vlc
-
 line = [] #라인 단위로 데이터 가져올 리스트 변수
 port = '/dev/ttyS3' # 시리얼 포트
 baud = 115200 # 시리얼 보드레이트(통신속도)
@@ -25,7 +24,9 @@ log.setLevel(logging.DEBUG)
 log_handler = logging.StreamHandler()
 log.addHandler(log_handler)
 eui_data=0x1f9eb7
-    
+videourl="rtsp://58.233.189.40:554/video1+audio1"
+
+
 def protocol(recv):
     global lora_detect
     tmp = ''.join(recv)
@@ -72,36 +73,41 @@ def writeThread(ser, exitThread):
     camera_detect = ""
     audio_detect = ""
     pir_detect = ""
+
+    video_dir="./playlist"
+    video_path="./playlist/"
+    on_state = False
     while not exitThread:
         camera_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio111/value'))
         audio_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio112/value'))
         pir_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio113/value'))
         if camera_detect or audio_detect or pir_detect or lora_detect:
-            if camera_detect == "1":
+            if camera_detect:
                 log.info("camera detect")
                 command = "CAMERA:LIGHTON"
-                os.system("echo 0 > /sys/class/gpio/gpio111/value")
-            if audio_detect == "1":
+                os.system('echo 0  > /sys/class/gpio/gpio111/value')
+            if audio_detect:
                 log.info("audio detect")
                 command = "AUDIO:LIGHTON"
-            if pir_detect == "1":
+            if pir_detect:
                 log.info("pir detect")
                 command = "PIR:LIGHTON"
-                os.system('echo 0 > /sys/class/gpio/gpio113/value')
+                os.system('echo 0  > /sys/class/gpio/gpio113/value')
             os.system('echo 1 > /sys/class/gpio/gpio65/value & echo 1 > /sys/class/gpio/gpio74/value')
             command = ""
             on_state = True
             start = time.time()
-            playsound("teemo.mp3")
+            if not on_state:
+                playsound("teemo.mp3")
         else :
             if on_state:
                 t = time.time() - start
-                subprocess.run('sudo -u orangepi -H sh -c "vlc-ctrl play"')
                 if t >= ontime:
                     log.info("light off")
-                    subprocess.run('sudo -u orangepi -H sh -c "vlc-ctrl pause"')
                     on_state = False
-                    os.system('echo 0 > /sys/class/gpio/gpio65/value & echo 1 > /sys/class/gpio/gpio74/value')
+                    os.system('echo 0  > /sys/class/gpio/gpio65/value & echo 0 > /sys/class/gpio/gpio74/value')
+            
+            
 
 
 if __name__ == "__main__":
