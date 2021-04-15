@@ -1,14 +1,17 @@
+import queue
 from flask import Flask, redirect, url_for, render_template, request, send_file, Response, session
 from werkzeug.utils import secure_filename
-import os, subprocess
+import os, subprocess, queue
+from multiprocessing import Process
 import cv2
 from flask_wtf import FlaskForm
 from wtforms.fields.html5 import DateField
 from wtforms.validators import DataRequired
 from wtforms import validators, SubmitField
 from datetime import datetime
-import crolling
 import pandas as pd
+import crolling, video
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '#$%^&*'
 img_dir_path = "./uploads"
@@ -35,12 +38,12 @@ def upload_page():
 #파일 업로드 처리
 @app.route('/fileUpload', methods = ['GET', 'POST'])
 def upload_file():
-    playlist_path = "~/detectAI/playlist/"
+    playlist_path = "./playlist/"
     if request.method == 'POST':
+        media_insert_queue.put(True)
         f = request.files['file']
         #저장할 경로 + 파일명
-        f.save('./playlist/' + secure_filename(f.filename))
-        subprocess.run('sudo -u orangepi -H sh -c "vlc --one-instance --playlist-enqueue {0}{1}"'.format(playlist_path,f.filename))
+        f.save(playlist_path + secure_filename(f.filename))
         return render_template('check.html')
     else:
         return render_template('page_not_found.html')
@@ -54,24 +57,23 @@ class InfoForm(FlaskForm):
 @app.route('/downfile', methods = ['GET', 'POST'])
 def down_page():
     form = InfoForm()
+    if form.validate_on_submit():
+        session['startdate'] = form.startdate.data
+        session['enddate'] = form.enddate.data
+        return redirect('fileDown')
     return render_template('filedown.html',form=form)
 
 #파일 다운로드 처리
 @app.route('/fileDown', methods = ['GET', 'POST'])
 def down_file():
-    if request.method == 'POST':
-        sw=0
-        file_time_list = []
-        zip_file_list=[]
-        startdate = datetime.strptime(request.form['startdate', "%Y-%m-%d"])
-        enddate = datetime.strptime(request.form['enddate', "%Y-%m-%d"])
-        for f in os.listdir(img_dir_path):
-            ftimestamp = os.path.getctime(img_file_path+f)
-            file_time_list.append(datetime.fromtimestamp(ftimestamp))
-        file_dict = {name:ctime for name, ctime in zip(os.listdir(img_dir_path),file_time_list)}
-        for fname, ctime in file_dict.items():
-            if ctime >= startdate and ctime <= enddate:
-                zip_file_list.append(img_file_path+fname)
+    zip_file_list=[]
+    startdate = datetime.datetime.strptime(session['startdate'],'%Y-%m-%d')
+    enddate = datetime.datetime.strptime(session['enddate'],'%Y-%m-%d')
+    for f in os.listdir(img_dir_path):
+        file = img_file_path + f
+        if os.path.getctime(file) >= startdate and os.path.getctime(file) <= enddate:
+            zip_file_list.append(file)
+    if zip_file_list:
         subprocess.run("zip -r ./temp.zip {}".format(zip_file_list))
         path = "./"
         return send_file(path + "temp.zip",
@@ -80,6 +82,17 @@ def down_file():
     else:
         return render_template('page_not_found.html')
 
+#쓰레드 종료용 시그널 함수
+def handler(signum, frame):
+    global exitThread
+    exitThread = True
+
 if __name__ == '__main__':
+    global media_insert_queue
+    media_insert_queue = queue.Queue()
+    media_insert_queue.put(True)
+    video_proc = Process(target=video.MainThread,args=media_insert_queue)
+    video_proc.append()
+    video_proc.start()
     #서버 실행
     app.run(host='10.42.0.1', debug = False) ## 카메라 사용시 debug false해야만 가능 
