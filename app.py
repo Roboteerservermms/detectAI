@@ -71,7 +71,7 @@ def down_file():
             if os.path.getctime(file) >= startdate and os.path.getctime(file) <= enddate:
                 zip_file_list.append(file)
         if zip_file_list:
-            subprocess.run("tar -cvf ./temp.tar {}".format(zip_file_list))
+            subprocess.getoutput("tar -cvf ./temp.tar {}".format(zip_file_list))
             return send_file("./temp.tar",
                     attachment_filename = "./temp.tar",
                     as_attachment=True)
