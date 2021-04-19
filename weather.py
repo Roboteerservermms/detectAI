@@ -1,7 +1,12 @@
 from urllib.request import urlopen 
 from urllib.parse import urlencode, unquote, quote_plus 
-import urllib , requests , json, datetime
+import urllib , requests , json, datetime, logging
 import pandas as pd
+
+log = logging.getLogger('detect')
+log.setLevel(logging.DEBUG)
+log_handler = logging.StreamHandler()
+log.addHandler(log_handler)
 
 encoding_auth_key = "BZF4W49MNogC%2F5NdkMns%2Fq8XPYfp%2FT5U2csm3nasMwRH28LLCUEzoLrnMOhO2mdkQHFYTEChLs5XdbpaM%2FrXpg%3D%3D"
 decoding_auth_key = "BZF4W49MNogC/5NdkMns/q8XPYfp/T5U2csm3nasMwRH28LLCUEzoLrnMOhO2mdkQHFYTEChLs5XdbpaM/rXpg=="
@@ -26,7 +31,7 @@ def find_xy(loc):
             try:
                 f_line = uniq_xylist[uniq_xylist['1단계'].str.contains(loc, na=False)]
             except:
-                print("주소가 잘못되었습니다")
+                log.info("주소가 잘못되었습니다")
                 return 0,0
     xy_list = f_line[["격자 X", "격자 Y"]].values
     return xy_list[0][0], xy_list[0][1]
@@ -92,7 +97,7 @@ def nowcast(loc):
         quote_plus("nx"): x, # 예보지점 X 좌표 
         quote_plus("ny"): y # 예보지점 Y 좌표 
     })
-    print(unquote(params))
+    log.info(unquote(params))
     req = urllib.request.Request(CallBackURL + unquote(params))
     response_body = urlopen(req).read() # get bytes data
     json_data = json.loads(response_body)
@@ -119,12 +124,12 @@ def forecast(loc):
         quote_plus("nx"): x, # 예보지점 X 좌표 
         quote_plus("ny"): y # 예보지점 Y 좌표 
     })
-    print(unquote(params))
+    log.info(unquote(params))
     req = urllib.request.Request(CallBackURL + unquote(params))
 
     response_body = urlopen(req).read() # get bytes data
     json_data = json.loads(response_body)
     df = pd.DataFrame(json_data["response"]["body"]["items"]["item"])
     weather_data = df.loc[["category","fcstTime", "fcstValue"]].values
-    print(weather_data)
+    log.info(weather_data)
 
