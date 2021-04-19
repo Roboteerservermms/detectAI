@@ -9,7 +9,7 @@ decoding_auth_key = "BZF4W49MNogC/5NdkMns/q8XPYfp/T5U2csm3nasMwRH28LLCUEzoLrnMOh
 xylist = pd.read_csv("./locate_data.csv", encoding='CP949', error_bad_lines=False)
 uniq_xylist = xylist[['1단계', '2단계', '3단계','격자 X', '격자 Y']].drop_duplicates()
 
-def weather_func():
+def test_func():
     global now_weather
     now_weather = nowcast("성수1가제1동")
     return now_weather
@@ -38,15 +38,15 @@ def explain_data(information):
             continue
         elif category == "PTY":
             value = int(value)
-            explainline += "-" +PTY_category(value) 
+            explainline += " " +PTY_category(value) 
         elif category == "SKY":
             value = int(value)
-            explainline += "-" +SKY_category(value)
+            explainline += " " +SKY_category(value)
         elif category =="RN1":
             value = float(value)
-            explainline += "-" +RN1_category(value)
+            explainline += " " +RN1_category(value)
         else:
-            explainline += "-" +classify_category(category,value)
+            explainline += " " +classify_category(category,value)
     return explainline
 
 def classify_category(category, value):

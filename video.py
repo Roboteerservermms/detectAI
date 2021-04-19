@@ -1,40 +1,61 @@
 # importing vlc module
 import vlc
-import crolling, schedule
+import weather, schedule, signal
 import os, subprocess
 
-video_dir="./playlist"
-video_path="./playlist/"
-on_state = False
-instance = vlc.Instance('--input-repeat=-1', '--fullscreen')
-player = instance.media_list_player_new()
-media_list = instance.media_list_new()
-video_list = os.listdir(video_dir)
-for v in video_list:
-    media = instance.media_new(video_path + v)
-    media_list.add_media(media)
-
-m_p = instance.media_player_new()
-m_p.set_fullscreen(True)
-
-player.set_media_player(m_p)
-player.set_media_list(media_list)
+video_dir="./filecontrol/playlist"
+video_path="./filecontrol/playlist/"
+onehour=3600000
+def insert_media():
+    media_list = instance.media_list_new()
+    for m in os.listdir(video_dir):
+        media = instance.media_new(video_path + m)
+        media_list.add_media(media)
+    medialistplayer.set_media_list(media_list)
+    instance.vlm_set_loop("playlist", True)
 
 def str2bool(v):
    return str(v).lower() in ("yes", "true", "t", "1")
- 
 
-while True:
-    object_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio65/value'))
-    if object_detect:
-        if not on_state:
-            player.play()
-        video_state = player.get_state()
-        if video_state == vlc.State.Ended or video_state == vlc.State.Stopped :
-            player.play()
-        on_state =True
+
+def MainThread(exitThread):
+    on_state = False
+    global instance
+    instance = vlc.Instance('--input-repeat=-1', '--fullscreen')
+    global medialistplayer
+    past_video = os.listdir(video_dir)
+    medialistplayer = instance.media_list_player_new()
+    mediaplayer = instance.media_player_new()
+    mediaplayer.set_fullscreen(True)
+    medialistplayer.set_media_player(mediaplayer)
+    mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Enable, 1)
+    mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Size, 24)  # pixels
+    mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Position, 6)
+    mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Timeout, 0) 
+    mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Refresh, onehour)
+    mediaplayer.video_set_marquee_string(vlc.VideoMarqueeOption.Text, weather.test_func())
+    insert_media()
+    while not exitThread:
+        object_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio65/value'))
+        if object_detect:
+            if not on_state:
+                medialistplayer.play()
+            on_state =True
+            
+        else:
+            if on_state:
+                on_state = False
+                medialistplayer.pause()
+        if past_video != os.listdir(video_dir):
+            insert_media()
         
-    else:
-        if on_state:
-            on_state = False
-            player.pause()
+
+#쓰레드 종료용 시그널 함수
+def handler(signum, frame):
+    global exitThread
+    exitThread = True
+
+if __name__ == "__main__":
+    exitThread=False
+    MainThread(exitThread)
+    
