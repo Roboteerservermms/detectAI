@@ -30,7 +30,7 @@ def MainThread(exitThread):
     medialistplayer.set_media_player(mediaplayer)
     mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Enable, 1)
     mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Size, 24)  # pixels
-    mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Position, 6)
+    mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Position, 4)
     mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Timeout, 0) 
     mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Refresh, onehour)
     mediaplayer.video_set_marquee_string(vlc.VideoMarqueeOption.Text, weather.test_func())
