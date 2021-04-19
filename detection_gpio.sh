@@ -21,6 +21,7 @@ python3 detect.py &
 echo "camera start!" &
 python3 LoRa.py & 
 echo "LoRa start!" &
+python3 video.py &
 filebrowser -a 10.42.0.1 -r ./filecontrol/
 
 
