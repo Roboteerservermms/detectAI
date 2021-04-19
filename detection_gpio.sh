@@ -21,7 +21,7 @@ python3 detect.py &
 echo "camera start!" &
 python3 LoRa.py & 
 echo "LoRa start!" &
-python3 app.py 
+filebrowser 10.42.0.1 5000 --directory ./filecontrol/ --upload ./filecontrol/playlist/ --player-directory-play
 
 
 
