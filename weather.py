@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+# -*- coding: UTF-8 -*-
 from urllib.request import urlopen 
 from urllib.parse import urlencode, unquote, quote_plus 
 import urllib , requests , json, datetime, logging
