@@ -79,8 +79,6 @@ def RN1_category(value):
 def nowcast(loc):
     x,y = find_xy(loc)
     time = datetime.datetime.now()
-    if time.minute < 40:
-        time = time - datetime.timedelta(minutes=time.minute)
     today = time.strftime("%Y%m%d")
     now = time.strftime("%H%M")
     CallBackURL = 'http://apis.data.go.kr/1360000/VilageFcstInfoService/getUltraSrtNcst' ## 동네 단기 실황
