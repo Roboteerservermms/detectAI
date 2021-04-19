@@ -34,9 +34,11 @@ def MainThread(exitThread):
     mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Timeout, 0) 
     mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Refresh, onehour)
     mediaplayer.video_set_marquee_string(vlc.VideoMarqueeOption.Text, weather.test_func())
+    schedule.every(40).minutes.do(mediaplayer.video_set_marquee_string(vlc.VideoMarqueeOption.Text, weather.test_func()))
     insert_media()
     medialistplayer.set_media_player(mediaplayer)
     while not exitThread:
+        schedule.run_pending()
         object_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio65/value'))
         if object_detect:
             if not on_state:
