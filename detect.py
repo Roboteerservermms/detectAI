@@ -81,7 +81,6 @@ def detectThread(exitThread):
 
     while not exitThread:
         ret, frame = cap.read()
-        schedule.run_pending()
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         img = Image.fromarray(frame)
         fontsize = 5
