@@ -28,7 +28,6 @@ def MainThread(exitThread):
     medialistplayer = instance.media_list_player_new()
     mediaplayer = instance.media_player_new()
     mediaplayer.set_fullscreen(True)
-    medialistplayer.set_media_player(mediaplayer)
     mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Enable, 1)
     mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Size, 24)  # pixels
     mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Position, 4)
@@ -36,6 +35,7 @@ def MainThread(exitThread):
     mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Refresh, onehour)
     mediaplayer.video_set_marquee_string(vlc.VideoMarqueeOption.Text, weather.test_func())
     insert_media()
+    medialistplayer.set_media_player(mediaplayer)
     while not exitThread:
         object_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio65/value'))
         if object_detect:
