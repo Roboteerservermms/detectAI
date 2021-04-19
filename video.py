@@ -1,4 +1,5 @@
 # importing vlc module
+# -*- coding: UTF-8 -*-
 import vlc
 import weather, schedule, signal
 import os, subprocess
