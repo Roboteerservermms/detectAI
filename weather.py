@@ -107,7 +107,9 @@ def nowcast(loc):
     json_data = json.loads(response_body)
     df = pd.DataFrame(json_data["response"]["body"]["items"]["item"])
     weather_data = df[["category", "obsrValue"]].values
-    return explain_data(weather_data)
+    ret = explain_data(weather_data)
+    log.info(ret)
+    return ret
 
 
 def forecast(loc):
