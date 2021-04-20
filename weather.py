@@ -111,15 +111,14 @@ def nowcast(loc):
     log.info(ret)
     return ret
 
-
-def forecast(loc):
+def firecast(loc):
     x,y = find_xy(loc)
     time = datetime.datetime.now()
     if time.minute < 40:
         time = time - datetime.timedelta(hours=1)
     today = time.strftime("%Y%m%d")
     now = time.strftime("%H%M")
-    CallBackURL = 'http://apis.data.go.kr/1360000/VilageFcstInfoService/getUltraSrtFcst' ## 동네 예보
+    CallBackURL = 'http://apis.data.go.kr/1360000/VilageFcstInfoService/getUltraSrtNcst' ## 동네 단기 실황
     params = '?' + urlencode({ 
         quote_plus("serviceKey"): decoding_auth_key, # 인증키 
         quote_plus("numOfRows"): "10", # 한 페이지 결과 수 // default : 10 
@@ -132,10 +131,9 @@ def forecast(loc):
     })
     log.info(unquote(params))
     req = urllib.request.Request(CallBackURL + unquote(params))
-
     response_body = urlopen(req).read() # get bytes data
     json_data = json.loads(response_body)
     df = pd.DataFrame(json_data["response"]["body"]["items"]["item"])
-    weather_data = df.loc[["category","fcstTime", "fcstValue"]].values
-    log.info(weather_data)
+    weather_data = df[["category", "obsrValue"]].values
+    return explain_data(weather_data)
 
