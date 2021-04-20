@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 import vlc
 import weather, schedule, signal
-import os, subprocess
+import os, subprocess, time
 
 video_dir="./filecontrol/playlist"
 video_path="./filecontrol/playlist/"
@@ -38,6 +38,9 @@ def MainThread(exitThread):
     schedule.every(40).minutes.do(setMarquee,mediaplayer)
     insert_media()
     medialistplayer.set_media_player(mediaplayer)
+    medialistplayer.play()
+    time.sleep(1)
+    medialistplayer.pause()
     while not exitThread:
         schedule.run_pending()
         object_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio65/value'))
