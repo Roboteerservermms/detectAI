@@ -6,7 +6,6 @@ import os, subprocess
 
 video_dir="./filecontrol/playlist"
 video_path="./filecontrol/playlist/"
-onehour=3600000
 def insert_media():
     media_list = instance.media_list_new()
     for m in os.listdir(video_dir):
@@ -32,10 +31,9 @@ def MainThread(exitThread):
     mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Size, 24)  # pixels
     mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Position, 4)
     mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Timeout, 0) 
-    mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Refresh, onehour)
-    schedule.every(1).minutes.do(mediaplayer.video_set_marquee_string,vlc.VideoMarqueeOption.Text,weather.test_func())
+    mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Refresh, 1000)
     mediaplayer.video_set_marquee_string(vlc.VideoMarqueeOption.Text, weather.test_func())
-    schedule.every(40).minutes.do(mediaplayer.video_set_marquee_string,vlc.VideoMarqueeOption.Text, weather.test_func())
+    schedule.every(1).minutes.do(mediaplayer.video_set_marquee_string,vlc.VideoMarqueeOption.Text, weather.test_func())
     insert_media()
     medialistplayer.set_media_player(mediaplayer)
     while not exitThread:
