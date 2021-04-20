@@ -21,7 +21,7 @@ def test_func():
     now_weather = nowcast("성수1가제1동")
     time = datetime.datetime.now()
     now = time.strftime("%H%M")
-    return "성수1가제1동" + now + now_weather
+    return "성수1가제1동 " + now + now_weather
 def find_xy(loc):
     xylist = pd.read_csv("./locate_data.csv", encoding='CP949', error_bad_lines=False)
     uniq_xylist = xylist[['1단계', '2단계', '3단계','격자 X', '격자 Y']].drop_duplicates()
