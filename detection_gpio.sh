@@ -21,8 +21,7 @@ cd $PYTHONPATH
 python3 detect.py & 
 echo "camera start!" &
 python3 LoRa.py & 
-echo "LoRa start!" &
-python3 video.py &
+echo "LoRa start!"
 filebrowser -a 10.42.0.1 -r ./filecontrol/
 
 

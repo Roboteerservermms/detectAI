@@ -8,6 +8,8 @@ import cv2, numpy as np, time
 import logging 
 from pathlib import Path
 from playsound import playsound
+from multiprocessing import Process
+import video
 
 from numpy.core.fromnumeric import partition
 
@@ -78,7 +80,9 @@ def detectThread(exitThread):
     ret_ious = [0] * num_store # ious between (current-2 and current), (current-1 and current) frames
     moving_threshold = [0.5, 0.80]
     
-
+    proc = Process(target=video.MainThread,args=exitThread)
+    proc.start()
+    
     while not exitThread:
         ret, frame = cap.read()
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
