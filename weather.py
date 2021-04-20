@@ -15,13 +15,16 @@ decoding_auth_key = "BZF4W49MNogC/5NdkMns/q8XPYfp/T5U2csm3nasMwRH28LLCUEzoLrnMOh
 
 xylist = pd.read_csv("./locate_data.csv", encoding='CP949', error_bad_lines=False)
 uniq_xylist = xylist[['1단계', '2단계', '3단계','격자 X', '격자 Y']].drop_duplicates()
-
+txt_path="./filecontrol"
 def test_func():
     global now_weather
     now_weather = nowcast("성수1가제1동")
     time = datetime.datetime.now()
-    now = time.strftime("%Y%m%d%H%M")
-    return now + now_weather
+    now = time.strftime("%H%M")
+    return "성수1가제1동" + now + now_weather
+
+def apply_func():
+
 
 def find_xy(loc):
     xylist = pd.read_csv("./locate_data.csv", encoding='CP949', error_bad_lines=False)
