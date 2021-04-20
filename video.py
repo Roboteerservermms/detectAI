@@ -1,4 +1,5 @@
 # importing vlc module
+# -*- coding: UTF-8 -*-
 import vlc
 import weather, schedule, signal
 import os, subprocess
@@ -34,6 +35,7 @@ def MainThread(exitThread):
     mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Refresh, onehour)
     schedule.every(1).minutes.do(mediaplayer.video_set_marquee_string,vlc.VideoMarqueeOption.Text,weather.test_func())
     mediaplayer.video_set_marquee_string(vlc.VideoMarqueeOption.Text, weather.test_func())
+    schedule.every(40).minutes.do(mediaplayer.video_set_marquee_string,vlc.VideoMarqueeOption.Text, weather.test_func())
     insert_media()
     medialistplayer.set_media_player(mediaplayer)
     while not exitThread:
