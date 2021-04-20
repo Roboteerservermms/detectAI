@@ -17,6 +17,8 @@ def insert_media():
 def str2bool(v):
    return str(v).lower() in ("yes", "true", "t", "1")
 
+def setMarquee(mediaplayer):
+    mediaplayer.video_set_marquee_string(vlc.VideoMarqueeOption.Text, weather.test_func())
 
 def MainThread(exitThread):
     on_state = False
@@ -33,7 +35,7 @@ def MainThread(exitThread):
     mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Timeout, 0) 
     mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Refresh, 1000)
     mediaplayer.video_set_marquee_string(vlc.VideoMarqueeOption.Text, weather.test_func())
-    schedule.every(1).minutes.do(mediaplayer.video_set_marquee_string,vlc.VideoMarqueeOption.Text, weather.test_func())
+    schedule.every(40).minutes.do(setMarquee,mediaplayer)
     insert_media()
     medialistplayer.set_media_player(mediaplayer)
     while not exitThread:

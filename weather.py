@@ -19,7 +19,9 @@ uniq_xylist = xylist[['1단계', '2단계', '3단계','격자 X', '격자 Y']].d
 def test_func():
     global now_weather
     now_weather = nowcast("성수1가제1동")
-    return now_weather
+    time = datetime.datetime.now()
+    now = time.strftime("%Y%m%d%H%M")
+    return now + now_weather
 
 def find_xy(loc):
     xylist = pd.read_csv("./locate_data.csv", encoding='CP949', error_bad_lines=False)
