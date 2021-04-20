@@ -10,8 +10,8 @@ log.setLevel(logging.DEBUG)
 log_handler = logging.StreamHandler()
 log.addHandler(log_handler)
 
-encoding_auth_key = "BZF4W49MNogC%2F5NdkMns%2Fq8XPYfp%2FT5U2csm3nasMwRH28LLCUEzoLrnMOhO2mdkQHFYTEChLs5XdbpaM%2FrXpg%3D%3D"
-decoding_auth_key = "BZF4W49MNogC/5NdkMns/q8XPYfp/T5U2csm3nasMwRH28LLCUEzoLrnMOhO2mdkQHFYTEChLs5XdbpaM/rXpg=="
+weather_key = "BZF4W49MNogC/5NdkMns/q8XPYfp/T5U2csm3nasMwRH28LLCUEzoLrnMOhO2mdkQHFYTEChLs5XdbpaM/rXpg=="
+firekey = 'LnGexAD8fgCx6EyYhWQTUFihaTuhgWZc%2B1oN%2BSwOjTU%3D'
 
 xylist = pd.read_csv("./locate_data.csv", encoding='CP949', error_bad_lines=False)
 uniq_xylist = xylist[['1단계', '2단계', '3단계','격자 X', '격자 Y']].drop_duplicates()
@@ -87,13 +87,11 @@ def RN1_category(value):
 def nowcast(loc):
     x,y = find_xy(loc)
     time = datetime.datetime.now()
-    if time.minute < 40:
-        time = time - datetime.timedelta(hours=1)
     today = time.strftime("%Y%m%d")
     now = time.strftime("%H%M")
     CallBackURL = 'http://apis.data.go.kr/1360000/VilageFcstInfoService/getUltraSrtNcst' ## 동네 단기 실황
     params = '?' + urlencode({ 
-        quote_plus("serviceKey"): decoding_auth_key, # 인증키 
+        quote_plus("serviceKey"): weather_key, # 인증키 
         quote_plus("numOfRows"): "10", # 한 페이지 결과 수 // default : 10 
         quote_plus("pageNo"): "1", # 페이지 번호 // default : 1 
         quote_plus("dataType"): "JSON", # 응답자료형식 : XML, JSON 
