@@ -43,7 +43,10 @@ def MainThread(exitThread):
     time.sleep(1)
     medialistplayer.pause()
     while not exitThread:
-        schedule.run_pending()
+        try:
+            schedule.run_pending()
+        except:
+            continue
         object_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio65/value'))
         if object_detect:
             if not on_state:
