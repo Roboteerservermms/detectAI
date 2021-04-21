@@ -1,8 +1,12 @@
 # importing vlc module
 # -*- coding: UTF-8 -*-
 import vlc
-import weather, schedule, signal
+import weather, schedule, signal, logging
 import os, subprocess, time
+log = logging.getLogger('detect')
+log.setLevel(logging.DEBUG)
+log_handler = logging.StreamHandler()
+log.addHandler(log_handler)
 
 video_dir="./filecontrol/playlist"
 video_path="./filecontrol/playlist/"
@@ -34,7 +38,10 @@ def MainThread(exitThread):
     mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Position, 4)
     mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Timeout, 0) 
     mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Refresh, 1000)
-    mediaplayer.video_set_marquee_string(vlc.VideoMarqueeOption.Text, weather.test_func())
+    try:
+        mediaplayer.video_set_marquee_string(vlc.VideoMarqueeOption.Text, weather.test_func())
+    except:
+        log.info("internet is not connected")
     schedule.every(40).minutes.do(setMarquee,mediaplayer)
     insert_media()
     medialistplayer.set_media_player(mediaplayer)
