@@ -16,6 +16,7 @@ def insert_media():
         media = instance.media_new(video_path + m)
         media_list.add_media(media)
     medialistplayer.set_media_list(media_list)
+    instance.vlm_set_loop("playlist", True)
 
 def str2bool(v):
    return str(v).lower() in ("yes", "true", "t", "1")
@@ -44,6 +45,7 @@ def MainThread(exitThread):
         log.info("internet is not connected")
     schedule.every(40).minutes.do(setMarquee,mediaplayer)
     insert_media()
+    instance.vlm_set_loop("playlist", True)
     medialistplayer.set_media_player(mediaplayer)
     time.sleep(3)
     medialistplayer.play()
