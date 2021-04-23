@@ -17,6 +17,7 @@ done
 export PYTHONPATH="/home/orangepi/detectAI"
 export PYTHONIOENCODING=UTF-8
 cd $PYTHONPATH
+git pull
 python3 detect.py & 
 echo "camera start!" &
 python3 LoRa.py & 

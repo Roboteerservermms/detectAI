@@ -34,6 +34,7 @@ def MainThread(exitThread):
     medialistplayer = instance.media_list_player_new()
     mediaplayer = instance.media_player_new()
     mediaplayer.set_fullscreen(True)
+    medialistplayer.set_playback_mode(vlc.PlaybackMode.loop)
     mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Enable, 1)
     mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Size, 24)  # pixels
     mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Position, 4)
