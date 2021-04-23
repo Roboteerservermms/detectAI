@@ -28,6 +28,7 @@ def MainThread(exitThread):
     on_state = False
     global instance
     instance = vlc.Instance('--input-repeat=-1', '--fullscreen')
+    instance.vlm_set_loop("playlist", True)
     global medialistplayer
     past_video = os.listdir(video_dir)
     medialistplayer = instance.media_list_player_new()
@@ -53,6 +54,7 @@ def MainThread(exitThread):
         try:
             schedule.run_pending()
         except:
+            log.info("internet is not connected")
             continue
         object_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio65/value'))
         if object_detect:

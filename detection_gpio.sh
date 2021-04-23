@@ -14,7 +14,6 @@ for gpio in "65" "74" "111" "112" "113"; do
     sleep 1
     echo "out" > /sys/class/gpio/gpio${gpio}/direction
 done
-echo 1 > /sys/class/gpio/gpio74/value ## to control relay
 export PYTHONPATH="/home/orangepi/detectAI"
 export PYTHONIOENCODING=UTF-8
 cd $PYTHONPATH
