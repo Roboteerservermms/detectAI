@@ -29,7 +29,7 @@ def insert_media():
     else:
         video = pafy.new(broadcast_url)
         best = video.getbest()
-        media_list.add_media(best)
+        media_list.add_media(best.url)
     medialistplayer.set_media_list(media_list)
 
 
