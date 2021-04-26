@@ -30,8 +30,8 @@ def insert_media():
     #     video = pafy.new(broadcast_url)
     #     best = video.getbest()
     #     media = instance.media_new(best.url)
-    # media_list.add_media(media)
-    # medialistplayer.set_media_list(media_list)
+    media_list.add_media(media)
+    medialistplayer.set_media_list(media_list)
 
 
 def str2bool(v):
