@@ -14,7 +14,7 @@ video_path="./filecontrol/playlist/"
 def insert_media():
     media_list = instance.media_list_new()
     try:
-        mrl = pd.read_csv("./filecontrol/broadcastlink.csv", encoding='CP949')
+        mrl = pd.read_csv("./filecontrol/broadcastlink.csv", encoding='utf-8')
     except pd.errors.EmptyDataError:
         media_list = instance.media_list_new()
         for m in os.listdir(video_dir):
