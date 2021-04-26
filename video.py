@@ -26,12 +26,12 @@ def insert_media():
     broadcast_url =  f_line[["url"]].values[0][0]
     if broadcast_url.find("rtsp"):
         media = instance.media_new(broadcast_url)
-    else:
-        video = pafy.new(broadcast_url)
-        best = video.getbest()
-        media = instance.media_new(best.url)
-    media_list.add_media(media)
-    medialistplayer.set_media_list(media_list)
+    # elif broadcast_url.find("youtube"):
+    #     video = pafy.new(broadcast_url)
+    #     best = video.getbest()
+    #     media = instance.media_new(best.url)
+    # media_list.add_media(media)
+    # medialistplayer.set_media_list(media_list)
 
 
 def str2bool(v):
