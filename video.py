@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 import vlc
 import weather, schedule, signal, logging
-import os, subprocess, time
+import os, subprocess, time, pafy
 import pandas as pd
 log = logging.getLogger('detect')
 log.setLevel(logging.DEBUG)
@@ -24,8 +24,14 @@ def insert_media():
         return 0
     f_line = mrl[mrl['실행여부'].str.contains("play", na=False)]
     broadcast_url =  f_line[["url"]].values[0][0]
-    media_list.add_media(broadcast_url)
+    if broadcast_url.find("rtsp"):
+        media_list.add_media(broadcast_url)
+    else:
+        video = pafy.new(broadcast_url)
+        best = video.getbest()
+        media_list.add_media(best)
     medialistplayer.set_media_list(media_list)
+
 
 def str2bool(v):
    return str(v).lower() in ("yes", "true", "t", "1")
