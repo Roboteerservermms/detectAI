@@ -3,6 +3,7 @@
 import vlc
 import weather, schedule, signal, logging
 import os, subprocess, time
+import pandas as pd
 log = logging.getLogger('detect')
 log.setLevel(logging.DEBUG)
 log_handler = logging.StreamHandler()
@@ -12,11 +13,18 @@ video_dir="./filecontrol/playlist"
 video_path="./filecontrol/playlist/"
 def insert_media():
     media_list = instance.media_list_new()
-    for m in os.listdir(video_dir):
-        media = instance.media_new(video_path + m)
-        media_list.add_media(media)
+    try:
+        mrl = pd.read_csv("./filecontrol/broadcastlink.csv", encoding='utf-8')
+    except pd.errors.EmptyDataError:
+        media_list = instance.media_list_new()
+        for m in os.listdir(video_dir):
+            media = instance.media_new(video_path + m)
+            media_list.add_media(media)
+        medialistplayer.set_media_list(media_list)
+        return 0
+    f_line = mrl[mrl['실행여부'].str.contains("1", na=False)]
+    media_list.add_media(f_line[["url"]].values)
     medialistplayer.set_media_list(media_list)
-    instance.vlm_set_loop("playlist", True)
 
 def str2bool(v):
    return str(v).lower() in ("yes", "true", "t", "1")
