@@ -23,7 +23,8 @@ def insert_media():
         medialistplayer.set_media_list(media_list)
         return 0
     f_line = mrl[mrl['실행여부'].str.contains("play", na=False)]
-    media_list.add_media(f_line[["url"]].values)
+    broadcast_url =  f_line[["url"]].values[0][0]
+    media_list.add_media(broadcast_url)
     medialistplayer.set_media_list(media_list)
 
 def str2bool(v):
