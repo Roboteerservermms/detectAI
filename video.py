@@ -36,7 +36,6 @@ def MainThread(exitThread):
     on_state = False
     global instance
     instance = vlc.Instance('--input-repeat=-1', '--fullscreen')
-    instance.vlm_set_loop("playlist", True)
     global medialistplayer
     past_video = os.listdir(video_dir)
     medialistplayer = instance.media_list_player_new()
@@ -54,7 +53,6 @@ def MainThread(exitThread):
         log.info("internet is not connected")
     schedule.every(40).minutes.do(setMarquee,mediaplayer)
     insert_media()
-    instance.vlm_set_loop("playlist", True)
     medialistplayer.set_media_player(mediaplayer)
     time.sleep(3)
     medialistplayer.play()
