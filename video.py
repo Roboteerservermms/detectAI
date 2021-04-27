@@ -2,7 +2,8 @@
 # -*- coding: UTF-8 -*-
 import vlc
 import weather, schedule, signal, logging
-import os, subprocess, time
+import os, subprocess, time, pafy
+import pandas as pd
 log = logging.getLogger('detect')
 log.setLevel(logging.DEBUG)
 log_handler = logging.StreamHandler()
@@ -12,11 +13,26 @@ video_dir="./filecontrol/playlist"
 video_path="./filecontrol/playlist/"
 def insert_media():
     media_list = instance.media_list_new()
-    for m in os.listdir(video_dir):
-        media = instance.media_new(video_path + m)
-        media_list.add_media(media)
+    try:
+        mrl = pd.read_csv("./filecontrol/broadcastlink.csv", encoding='utf-8')
+    except pd.errors.EmptyDataError:
+        media_list = instance.media_list_new()
+        for m in os.listdir(video_dir):
+            media = instance.media_new(video_path + m)
+            media_list.add_media(media)
+        medialistplayer.set_media_list(media_list)
+        return 0
+    f_line = mrl[mrl['실행여부'].str.contains("play", na=False)]
+    broadcast_url =  f_line[["url"]].values[0][0]
+    if broadcast_url.find("rtsp"):
+        media = instance.media_new(broadcast_url)
+    # elif broadcast_url.find("youtube"):
+    #     video = pafy.new(broadcast_url)
+    #     best = video.getbest()
+    #     media = instance.media_new(best.url)
+    media_list.add_media(media)
     medialistplayer.set_media_list(media_list)
-    instance.vlm_set_loop("playlist", True)
+
 
 def str2bool(v):
    return str(v).lower() in ("yes", "true", "t", "1")
@@ -28,7 +44,6 @@ def MainThread(exitThread):
     on_state = False
     global instance
     instance = vlc.Instance('--input-repeat=-1', '--fullscreen')
-    instance.vlm_set_loop("playlist", True)
     global medialistplayer
     past_video = os.listdir(video_dir)
     medialistplayer = instance.media_list_player_new()
@@ -46,7 +61,6 @@ def MainThread(exitThread):
         log.info("internet is not connected")
     schedule.every(40).minutes.do(setMarquee,mediaplayer)
     insert_media()
-    instance.vlm_set_loop("playlist", True)
     medialistplayer.set_media_player(mediaplayer)
     time.sleep(3)
     medialistplayer.play()
