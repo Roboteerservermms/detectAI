@@ -3,7 +3,7 @@ timedatectl set-timezone Asia/Seoul
 chmod 775 /sys/class/gpio/export
 chmod 775 /sys/class/gpio/unexport
 echo "Start AI Detection!"
-for gpio in "65" "74" "111" "112" "113"; do
+for gpio in "65" "68" "70" "71" "72" "74" "111" "112" "113"; do
     GPIO_DIR=$(ls /sys/class/gpio/ | grep ${gpio})
     if [ -n "$GPIO_DIR" ]; then
             echo "GPIO already exist from past error"

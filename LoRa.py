@@ -6,8 +6,7 @@ import threading
 import os
 import logging
 import subprocess
-from playsound import playsound
-import vlc
+import pygame
 line = [] #라인 단위로 데이터 가져올 리스트 변수
 port = '/dev/ttyS3' # 시리얼 포트
 baud = 115200 # 시리얼 보드레이트(통신속도)
@@ -26,7 +25,7 @@ log.addHandler(log_handler)
 eui_data=0x1f9eb7
 videourl="rtsp://58.233.189.40:554/video1+audio1"
 
-
+pygame.init()
 def protocol(recv):
     global lora_detect
     tmp = ''.join(recv)
@@ -73,10 +72,9 @@ def writeThread(ser, exitThread):
     camera_detect = ""
     audio_detect = ""
     pir_detect = ""
-
-    video_dir="./playlist"
-    video_path="./playlist/"
     on_state = False
+
+    mySound = pygame.mixer.Sound( "warning.mp3" )
     while not exitThread:
         camera_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio111/value'))
         audio_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio112/value'))
@@ -98,7 +96,7 @@ def writeThread(ser, exitThread):
             on_state = True
             start = time.time()
             if not on_state:
-                playsound("teemo.mp3")
+                mySound.play()
         else :
             if on_state:
                 t = time.time() - start

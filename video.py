@@ -24,8 +24,7 @@ def insert_media():
         return 0
     f_line = mrl[mrl['실행여부'].str.contains("play", na=False)]
     broadcast_url =  f_line[["url"]].values[0][0]
-    if broadcast_url.find("rtsp"):
-        media = instance.media_new(broadcast_url)
+    media = instance.media_new(broadcast_url)
     # elif broadcast_url.find("youtube"):
     #     video = pafy.new(broadcast_url)
     #     best = video.getbest()

@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 from urllib.request import urlopen 
 from urllib.parse import urlencode, unquote, quote_plus 
-import urllib , requests , json, datetime, logging,xmltodict
+import urllib , requests , json, datetime, logging,xmltodict, subprocess
 import pandas as pd
 
 log = logging.getLogger('detect')
@@ -12,7 +12,10 @@ log.addHandler(log_handler)
 
 weather_key = "BZF4W49MNogC/5NdkMns/q8XPYfp/T5U2csm3nasMwRH28LLCUEzoLrnMOhO2mdkQHFYTEChLs5XdbpaM/rXpg=="
 firekey = 'LnGexAD8fgCx6EyYhWQTUFihaTuhgWZc%2B1oN%2BSwOjTU%3D'
-
+low_gpio = 68
+normal_gpio = 70
+high_gpio = 71
+danger_gpio = 72
 xylist = pd.read_csv("./locate_data.csv", encoding='CP949', error_bad_lines=False)
 uniq_xylist = xylist[['1단계', '2단계', '3단계','격자 X', '격자 Y']].drop_duplicates()
 txt_path="./filecontrol"
@@ -153,12 +156,16 @@ def firecast(loc):
     if gubun =='emd':
         ret = float(df.iloc[7][0])
         if ret >= 0.0 and ret < 25.0:
+            subprocess.getoutput('echo 1 > /sys/class/gpio/gpio{0}/value & echo 0 > /sys/class/gpio/gpio{1}/value & echo 0 > /sys/class/gpio/gpio{2}/value & echo 0 > /sys/class/gpio/gpio{3}/value'.format(low_gpio,normal_gpio,high_gpio,danger_gpio))
             return "낮음"
         elif ret >= 25.0 and ret < 50.0:
+            subprocess.getoutput('echo 0 > /sys/class/gpio/gpio{0}/value & echo 1 > /sys/class/gpio/gpio{1}/value & echo 0 > /sys/class/gpio/gpio{2}/value & echo 0 > /sys/class/gpio/gpio{3}/value'.format(low_gpio,normal_gpio,high_gpio,danger_gpio))
             return "보통"
         elif ret >= 50.0 and ret < 75.0:
+            subprocess.getoutput('echo 0 > /sys/class/gpio/gpio{0}/value & echo 0 > /sys/class/gpio/gpio{1}/value & echo 1 > /sys/class/gpio/gpio{2}/value & echo 0 > /sys/class/gpio/gpio{3}/value'.format(low_gpio,normal_gpio,high_gpio,danger_gpio))
             return "높음"
         elif ret >= 75.0 and ret < 100:
+            subprocess.getoutput('echo 0 > /sys/class/gpio/gpio{0}/value & echo 0 > /sys/class/gpio/gpio{1}/value & echo 0 > /sys/class/gpio/gpio{2}/value & echo 1 > /sys/class/gpio/gpio{3}/value'.format(low_gpio,normal_gpio,high_gpio,danger_gpio))
             return "매우높음"
     else:
         d =df[["d1","d2","d3","d4"]].values
