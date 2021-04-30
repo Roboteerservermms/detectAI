@@ -7,7 +7,6 @@ import os
 import logging
 import subprocess
 import pygame
-import vlc
 line = [] #라인 단위로 데이터 가져올 리스트 변수
 port = '/dev/ttyS3' # 시리얼 포트
 baud = 115200 # 시리얼 보드레이트(통신속도)
@@ -26,7 +25,7 @@ log.addHandler(log_handler)
 eui_data=0x1f9eb7
 videourl="rtsp://58.233.189.40:554/video1+audio1"
 
-
+pygame.init()
 def protocol(recv):
     global lora_detect
     tmp = ''.join(recv)
