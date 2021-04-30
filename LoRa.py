@@ -72,9 +72,6 @@ def writeThread(ser, exitThread):
     camera_detect = ""
     audio_detect = ""
     pir_detect = ""
-
-    video_dir="./playlist"
-    video_path="./playlist/"
     on_state = False
 
     mySound = pygame.mixer.Sound( "warning.mp3" )
