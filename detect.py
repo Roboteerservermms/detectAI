@@ -145,7 +145,6 @@ def detectThread(exitThread):
                 break
     except cv2.error as error:
         log.error("[Error]: {}".format(error))
-        subprocess.getoutput('gh issue create --title "video issue" --body "{}"'.format(error))
         subprocess.getoutput("reboot")
 
         
