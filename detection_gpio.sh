@@ -1,5 +1,6 @@
 #!/bin/bash
 timedatectl set-timezone Asia/Seoul
+amixer cset -c 0 numid=10,iface=MIXER,name='LINEOUT Volume' 18.6
 chmod 775 /sys/class/gpio/export
 chmod 775 /sys/class/gpio/unexport
 echo "Start AI Detection!"
