@@ -70,7 +70,6 @@ def MainThread(exitThread):
             schedule.run_pending()
         except:
             log.info("internet is not connected")
-            continue
         object_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio65/value'))
         if object_detect:
             if not on_state:

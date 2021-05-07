@@ -105,9 +105,6 @@ def detectThread(exitThread):
                                 detect_function(img,object="person")
                         else:
                             curr_boxes.append(box)
-
-
-
             # detection for moving vehicle
             store_boxes.append(np.expand_dims(np.array(curr_boxes), axis=0))
             curr_boxes = []
