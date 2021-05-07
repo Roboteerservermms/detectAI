@@ -163,6 +163,10 @@ def firecast(loc):
         elif ret >= 75.0 and ret < 100:
             subprocess.getoutput('echo 0 > /sys/class/gpio/gpio{1}/value & echo 0 > /sys/class/gpio/gpio{2}/value & echo 1 > /sys/class/gpio/gpio{3}/value'.format(normal_gpio,high_gpio,danger_gpio))
             return "매우높음"
+        elif ret >= 0.0 and ret < 25.0:
+            return "낮음"
+        else:
+            return "데이터 이상"
     else:
         d =df[["d1","d2","d3","d4"]].values
         i = d[0].index(max(d[0]))
