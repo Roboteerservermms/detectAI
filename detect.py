@@ -80,9 +80,6 @@ def detectThread(exitThread):
         num_store = 4
         ret_ious = [0] * num_store # ious between (current-2 and current), (current-1 and current) frames
         moving_threshold = [0.5, 0.80]
-        
-        proc = Process(target=video.MainThread,args=(exitThread,))
-        proc.start()
 
         while not exitThread:
             ret, frame = cap.read()
@@ -154,3 +151,5 @@ if __name__ == '__main__':
     exitThread = False
     #종료 시그널 등록
     detectThread(exitThread)
+    proc = Process(target=video.MainThread,args=(exitThread,))
+    proc.start()
