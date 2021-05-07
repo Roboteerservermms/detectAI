@@ -12,9 +12,9 @@ log.addHandler(log_handler)
 
 weather_key = "BZF4W49MNogC/5NdkMns/q8XPYfp/T5U2csm3nasMwRH28LLCUEzoLrnMOhO2mdkQHFYTEChLs5XdbpaM/rXpg=="
 firekey = 'LnGexAD8fgCx6EyYhWQTUFihaTuhgWZc%2B1oN%2BSwOjTU%3D'
-normal_gpio = 70
-high_gpio = 71
-danger_gpio = 72
+normal_gpio = 68
+high_gpio = 70
+danger_gpio = 71
 xylist = pd.read_csv("./locate_data.csv", encoding='CP949', error_bad_lines=False)
 uniq_xylist = xylist[['1단계', '2단계', '3단계','격자 X', '격자 Y']].drop_duplicates()
 txt_path="./filecontrol"
