@@ -61,7 +61,7 @@ def MainThread(exitThread):
     schedule.every(40).minutes.do(setMarquee,mediaplayer)
     insert_media()
     medialistplayer.set_media_player(mediaplayer)
-    time.sleep(5)
+    time.sleep(10)
     medialistplayer.play()
     time.sleep(1)
     medialistplayer.pause()
