@@ -148,5 +148,3 @@ if __name__ == '__main__':
     exitThread = False
     #종료 시그널 등록
     detectThread(exitThread)
-    proc = Process(target=video.MainThread,args=(exitThread,))
-    proc.start()
