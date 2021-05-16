@@ -6,7 +6,7 @@ curl https://bootstrap.pypa.io/get-pip.py | python3.7
 sudo apt-get install gfortran libopenblas-dev liblapack-dev -y
 sudo apt-get install libbz2-dev libatlas-base-dev libgfortran5 liblzma-dev pybind11-dev -y
 sudo apt install libatlas3-base libgfortran5 -y
-
+sudo apt-get install libhdf5-dev -y
 sudo LLVM_CONFIG=/usr/bin/llvm-config python3.7 -m pip install llvmlite==0.29.0
 sudo apt-get install build-essential python3.7 cmake unzip pkg-config gcc-6 g++-6 screen libxmu-dev libxi-dev libglu1-mesa libglu1-mesa-dev libjpeg-dev libpng-dev libtiff-dev libavcodec-dev libavformat-dev libswscale-dev libv4l-dev libxvidcore-dev libx264-dev libopenblas-dev libatlas-base-dev liblapack-dev gfortran libhdf5-serial-dev python3-dev python3-tk python-imaging-tk libgtk-3-dev -y
 sudo apt-get install build-essential cmake unzip pkg-config gcc-6 g++-6 screen libxmu-dev libxi-dev libglu1-mesa libglu1-mesa-dev libjpeg-dev libpng-dev libtiff-dev libavcodec-dev libavformat-dev libswscale-dev libv4l-dev libxvidcore-dev libx264-dev libopenblas-dev libatlas-base-dev liblapack-dev gfortran libhdf5-serial-dev python3.7-dev python3.7-tk python-imaging-tk libgtk-3-dev -y
