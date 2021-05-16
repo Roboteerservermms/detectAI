@@ -4,7 +4,7 @@ sudo ln -s /usr/bin/llvm-config-7 /usr/bin/llvm-config
 curl https://bootstrap.pypa.io/get-pip.py | python3.7
 
 sudo apt-get install gfortran libopenblas-dev liblapack-dev -y
-sudo apt-get install libbz2-dev libatlas-base-dev libgfortran5 liblzma-dev -y
+sudo apt-get install libbz2-dev libatlas-base-dev libgfortran5 liblzma-dev pybind11-dev -y
 sudo apt install libatlas3-base libgfortran5 -y
 
 sudo LLVM_CONFIG=/usr/bin/llvm-config python3.7 -m pip install llvmlite==0.29.0
