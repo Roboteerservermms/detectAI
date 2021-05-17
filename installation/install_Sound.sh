@@ -1,4 +1,4 @@
-sudo apt-get install python3.7-pip python3.7-dev python-pip python-dev -y
+
 sudo apt-get install llvm-7 -y
 sudo ln -s /usr/bin/llvm-config-7 /usr/bin/llvm-config
 curl https://bootstrap.pypa.io/get-pip.py | python3.7
