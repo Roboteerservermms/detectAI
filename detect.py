@@ -7,9 +7,7 @@ from PIL import ImageFont
 import cv2, numpy as np, time
 import logging 
 from pathlib import Path
-from playsound import playsound
 from multiprocessing import Process
-import video
 
 from numpy.core.fromnumeric import partition
 

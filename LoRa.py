@@ -80,7 +80,6 @@ def writeThread(ser, exitThread):
     while not exitThread:
         camera_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio111/value'))
         audio_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio112/value'))
-        pir_detect = str2bool(subprocess.getoutput('cat /sys/class/gpio/gpio113/value'))
         if camera_detect or audio_detect or pir_detect or lora_detect:
             if camera_detect:
                 log.info("camera detect")
@@ -93,7 +92,7 @@ def writeThread(ser, exitThread):
                 log.info("pir detect")
                 command = "PIR:LIGHTON"
                 os.system('echo 0  > /sys/class/gpio/gpio113/value')
-            os.system('echo 1 > /sys/class/gpio/gpio65/value & echo 1 > /sys/class/gpio/gpio74/value')
+            os.system('echo 1 > /sys/class/gpio/gpio21/value')
             command = ""
             on_state = True
             start = time.time()
@@ -105,7 +104,7 @@ def writeThread(ser, exitThread):
                 if t >= ontime:
                     log.info("light off")
                     on_state = False
-                    os.system('echo 0  > /sys/class/gpio/gpio65/value & echo 0 > /sys/class/gpio/gpio74/value')
+                    os.system('echo 0  > /sys/class/gpio/gpio21/value')
             
             
 
@@ -116,7 +115,7 @@ if __name__ == "__main__":
     #종료 시그널 등록
     signal.signal(signal.SIGINT, handler)
     #시리얼 열기
-    ser = serial.Serial(port, baud, timeout=0)
+    ser = 1 
     #시리얼 읽을 쓰레드 생성
     log.info("LoRa & gpio handler is running!")
     
