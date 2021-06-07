@@ -41,14 +41,6 @@ def detect_function(img, object):
     num_gpio = 111
     img_file_path= './filecontrol/snapshot/'
     subprocess.getoutput('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
-    now= datetime.datetime.now()
-    partition_usage=int(subprocess.getoutput("df | grep /dev/mmcblk0p2 | cut -c 45-46"))
-    img_file_name = '{0}{1}{2}.jpg'.format( img_file_path,now.strftime("%Y_%m_%d-%H_%M_%S"),object)
-    if partition_usage > 90:
-        old_file_name =subprocess.getoutput("ls -tr {} | head -n 1".format(img_file_path))
-        subprocess.getoutput("rm -rf {0}{1}".format(img_file_path, old_file_name))
-    img.save(img_file_name, "JPEG", quality=80, optimize=True, progressive=True)
-    subprocess.getoutput("sync")
 
 
 def detectThread(exitThread):

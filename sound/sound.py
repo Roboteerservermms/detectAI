@@ -268,6 +268,7 @@ def on_predicted():
                     log.info("-"*100)
                     log.info("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), top1_max[0][0], round(100 * np.max(predictions[i + 1])/np.sum(predictions[i + 1]),2)))
                     flag = 0
+                    system('echo 0 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
                 else :
                     if (np.max(predictions[i + 1])/np.sum(predictions[i + 1]) > threshold):
                         # log.info("{}    {}    ({} %)".format(current_datetime.strftime("%Y-%m-%d %H:%M:%S"), result, round(100 * np.max(predictions[0])/np.sum(predictions[0]),2)))

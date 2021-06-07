@@ -23,9 +23,9 @@ if [ $? -eq 0 ];then
 else
     echo "internet does not connected"
 fi
-python3 detect.py & 
+mate-terminal -e "python3 detect.py "& 
 echo "camera start!" &
-python3 LoRa.py & 
+mate-terminal -e "python3 LoRa.py"  & 
 echo "LoRa start!"&
 cd sound/
 mate-terminal -e "python3.7 sound.py"
