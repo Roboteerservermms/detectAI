@@ -24,7 +24,6 @@ if [ $? -eq 0 ];then
 else
     echo "internet does not connected"
 fi
-echo 1 > /sys/class/gpio/gpio74/value
 python3 detect.py & 
 echo "camera start!" &
 python3 LoRa.py & 
