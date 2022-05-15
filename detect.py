@@ -7,7 +7,6 @@ from PIL import ImageDraw
 from PIL import ImageFont
 import cv2, numpy as np, time
 import logging
-from imutils.video import VideoStream
 
 from flask import Response
 from flask import Flask
@@ -46,7 +45,7 @@ labelfile = 'labels.txt'
 labels = ReadLabelFile(labelfile) if labelfile else None
 labelids = labels.keys()
 
-vs = VideoStream(src=0).start()
+cap = cv2.VideoCapture(0)
 time.sleep(2.0)
 
 def ious(box1):
@@ -114,7 +113,7 @@ def detectThread(exitThread):
         moving_threshold = [0.5, 0.80]
 
         while not exitThread:
-            frame = vs.read()
+            ret, frame = cap.read()
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             img = Image.fromarray(frame)
             fontsize = 5
