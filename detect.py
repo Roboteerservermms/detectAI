@@ -1,17 +1,27 @@
 import datetime
 import subprocess
+import threading
 from edgetpu.detection.engine import DetectionEngine
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
 import cv2, numpy as np, time
-import logging 
-from pathlib import Path
-from playsound import playsound
-from multiprocessing import Process
-import video
+import logging
+from imutils.video import VideoStream
 
-from numpy.core.fromnumeric import partition
+from flask import Response
+from flask import Flask
+from flask import render_template
+import argparse
+
+outputFrame = None
+lock = threading.Lock()
+app = Flask(__name__)
+
+@app.route("/")
+def index():
+    # return the rendered template
+    return render_template("index.html")
 
 def ReadLabelFile(file_path):
     with open(file_path, 'r') as (f):
@@ -21,6 +31,23 @@ def ReadLabelFile(file_path):
         pCamerar = line.strip().split(maxsplit=1)
         ret[int(pCamerar[0])] = pCamerar[1].strip()
     return ret
+
+log = logging.getLogger('detect')
+log.setLevel(logging.DEBUG)
+log_handler = logging.StreamHandler()
+log.addHandler(log_handler)
+
+img_file_path= './snapshot/'
+
+log.info('Detection start')
+threshold = 0.6
+engine = DetectionEngine('models.tflite')
+labelfile = 'labels.txt'
+labels = ReadLabelFile(labelfile) if labelfile else None
+labelids = labels.keys()
+
+vs = VideoStream(src=0).start()
+time.sleep(2.0)
 
 def ious(box1):
   #[x1, y1, x2, y2]
@@ -39,41 +66,46 @@ def ious(box1):
     return iou
   return inner_iou
 
-def detect_function(img, object):
-    num_gpio = 111
-    img_file_path= './filecontrol/snapshot/'
-    subprocess.getoutput('echo 1 > /sys/class/gpio/gpio{}/value'.format(num_gpio))
+def detect_filesave(img, object):
     now= datetime.datetime.now()
-    partition_usage=int(subprocess.getoutput("df | grep /dev/mmcblk0p2 | cut -c 45-46"))
     img_file_name = '{0}{1}{2}.jpg'.format( img_file_path,now.strftime("%Y_%m_%d-%H_%M_%S"),object)
-    if partition_usage > 90:
-        old_file_name =subprocess.getoutput("ls -tr {} | head -n 1".format(img_file_path))
-        subprocess.getoutput("rm -rf {0}{1}".format(img_file_path, old_file_name))
     img.save(img_file_name, "JPEG", quality=80, optimize=True, progressive=True)
     subprocess.getoutput("sync")
 
+def generate():
+    # grab global references to the output frame and lock variables
+    global outputFrame, lock
+    # loop over frames from the output stream
+    while True:
+        # wait until the lock is acquired
+        with lock:
+            # check if the output frame is available, otherwise skip
+            # the iteration of the loop
+            if outputFrame is None:
+                continue
+            # encode the frame in JPEG format
+            (flag, encodedImage) = cv2.imencode(".jpg", outputFrame)
+            # ensure the frame was successfully encoded
+            if not flag:
+                continue
+        # yield the output frame in the byte format
+        yield(b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + 
+            bytearray(encodedImage) + b'\r\n')
+
+@app.route("/video_feed")
+def video_feed():
+    # return the response generated along with the specific media
+    # type (mime type)
+    return Response(generate(),
+        mimetype = "multipart/x-mixed-replace; boundary=frame")
 
 def detectThread(exitThread):
-    global  threshold
+    global  threshold, engine, labelids,vs
 
-    threshold = 60
-
-    log = logging.getLogger('detect')
-    log.setLevel(logging.DEBUG)
-    log_handler = logging.StreamHandler()
-    log.addHandler(log_handler)
-    
-    log.info('Detection start')
-    threshold = threshold / 100
-    engine = DetectionEngine('models.tflite')
-    labelfile = 'labels.txt'
-    labels = ReadLabelFile(labelfile) if labelfile else None
-    labelids = labels.keys()
     try :
-        cap = cv2.VideoCapture(0)
         detect = 0
         frames = 0
-        
+
         # detection for moving vehicle
         store_boxes = [] # past boxes for calculating IOU
         curr_boxes = [] # boxes in current frame
@@ -82,11 +114,11 @@ def detectThread(exitThread):
         moving_threshold = [0.5, 0.80]
 
         while not exitThread:
-            ret, frame = cap.read()
+            ret, frame = vs.read()
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             img = Image.fromarray(frame)
             fontsize = 5
-            font = ImageFont.truetype('Ubuntu-L.ttf', fontsize)
+            font = ImageFont.truetype('./NanumGothic.ttf', fontsize)
             draw = ImageDraw.Draw(img)
             time_start = time.time()*1000
             ans = engine.detect_with_image(img, threshold=threshold, keep_aspect_ratio=True, relative_coord=False, top_k=10)
@@ -102,22 +134,20 @@ def detectThread(exitThread):
                         if obj.label_id == 0:
                             if detect == 1:
                                 detect = 0
-                                detect_function(img,object="person")
+                                detect_filesave(img,object="person")
                         else:
                             curr_boxes.append(box)
             # detection for moving vehicle
             store_boxes.append(np.expand_dims(np.array(curr_boxes), axis=0))
             curr_boxes = []
-            
             if len(store_boxes) > num_store:
                 del store_boxes[0]
-                
                 for i in range(num_store - 1):
                     if store_boxes[i].any() and store_boxes[-1].any():
                         ret_ious[i] = np.apply_along_axis(ious(store_boxes[i].reshape((-1, 4))), 1, store_boxes[-1].reshape((-1, 4)))
                     else:
                         ret_ious[i] = np.array([])
-                
+
                 is_moving = ret_ious.copy()
                 for moving in is_moving:
                     moving = np.asarray(moving)
@@ -127,24 +157,28 @@ def detectThread(exitThread):
                         print("vehicle is moving")
                         if detect == 1:
                             detect = 0
-                            detect_function(img,object="moving_vehicle")
+                            detect_filesave(img,object="moving_vehicle")
                         break
 
-
             frame = np.array(img)
-            frame = frame[:, :, ::-1].copy()
-            cv2.imshow('detection', frame)
-            if cv2.waitKey(1) == 27:
-                log.error('exit program')
-                break
+            with lock:
+                outputFrame = frame[:, :, ::-1].copy()
     except cv2.error as error:
         log.error("[Error]: {}".format(error))
-        subprocess.getoutput("reboot")
 
-        
 if __name__ == '__main__':
-    global ontime
-    ontime = 10
     exitThread = False
-    #종료 시그널 등록
-    detectThread(exitThread)
+    ap = argparse.ArgumentParser()
+    ap.add_argument("-i", "--ip", type=str, required=True,
+        help="ip address of the device")
+    ap.add_argument("-o", "--port", type=int, required=True,
+        help="ephemeral port number of the server (1024 to 65535)")
+    args = vars(ap.parse_args())
+    t = threading.Thread(target=detectThread, args=(
+        exitThread,))
+    t.daemon = True
+    t.start()
+    # start the flask app
+    app.run(host=args["ip"], port=args["port"], debug=True,
+        threaded=True, use_reloader=False)
+vs.stop()
