@@ -114,7 +114,7 @@ def detectThread(exitThread):
         moving_threshold = [0.5, 0.80]
 
         while not exitThread:
-            ret, frame = vs.read()
+            frame = vs.read()
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             img = Image.fromarray(frame)
             fontsize = 5
